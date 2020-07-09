@@ -1,0 +1,10 @@
+@charset "UTF-8";
+@import "reset.css";
+@import "form.css";
+@import "global.css";
+@import "com.css";
+
+body {padding:10px; min-width:300px;}
+
+#page-sum {text-align:center; padding:1em 0; color:gray;}
+#start-analyze-wrap {padding-bottom:20px; text-align:center;}

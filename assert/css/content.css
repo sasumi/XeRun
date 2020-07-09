@@ -1,0 +1,32 @@
+@charset "UTF-8";
+
+.tapd-free-man-panel {width:800px; z-index:9999; display:block; top:30px; padding:0; border:none; box-shadow:1px 1px 50px #bbb}
+.tapd-free-man-panel::backdrop {position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0, 0, 0, 0.1);}
+.tapd-free-man-panel-close-btn:before {content:"×"; float:right; font-size:18px; cursor:pointer; color:gray; width:20px; height:20px; line-height:20px;}
+.tapd-free-man-panel-close-btn:before:hover {color:black;}
+.tapd-free-man-panel-title {float:left; font-size:16px; padding:10px;}
+.tapd-free-man-panel-content {padding:10px; clear:both;}
+
+.tapd-free-man-pg-tip {display:block; height:16px; max-width:550px; overflow:hidden;}
+.tapd-free-man-op-wrap {margin-top:5px; }
+
+.tapd-free-man-trigger {margin-left:10px; margin-right:-10px;}
+
+.tapd-free-man-status-sum {padding:5px; transition:all 0.1s linear; overflow:hidden;}
+.tapd-free-man-status-sum:hover {background-color:white;}
+.tapd-free-man-status-sum li {float:left; margin-left:10px; border-right:1px solid #ddd; padding-right:10px;}
+.tapd-free-man-status-sum li:last-child {border-right:none;}
+.tapd-free-man-status-sum span {display:block; text-align:center;}
+.tapd-free-man-status-sum .cnt {font-weight:bold; font-size:16px;}
+.tapd-free-man-status-sum .status {}
+
+.tapd-free-man-status-sum li[data-status="待评估"],
+.tapd-free-man-status-sum li[data-status="已核实"],
+.tapd-free-man-status-sum li[data-status="处理中"]{color:darkmagenta}
+.tapd-free-man-status-sum li[data-status="已解决"],
+.tapd-free-man-status-sum li[data-status="待回电"],
+.tapd-free-man-status-sum li[data-status="已验证"]{color:green;}
+.tapd-free-man-status-sum li[data-status="已关闭"]{color:gray;}
+.tapd-free-man-status-sum li[data-status="已拒绝"]{color:orange;}
+.tapd-free-man-status-sum li[data-status="已转需求"]{color:yellowgreen}
+.tapd-free-man-status-sum li[data-status="处理中"]{color:blue}

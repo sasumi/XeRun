@@ -1,0 +1,218 @@
+(function(){
+	const SUM_INFO = TAPD_HELPER.getBugSummaryInfo();
+	const CLASS_PREFIX = 'tapd-free-man';
+
+	let panel_html = `<dialog class="${CLASS_PREFIX}-panel" style="display:none;">
+					<div class="${CLASS_PREFIX}-panel-title">统计结果</div>
+					<div class="${CLASS_PREFIX}-panel-close-btn"></div>
+					<div class="${CLASS_PREFIX}-panel-content">
+						<div class="${CLASS_PREFIX}">
+							<div class="${CLASS_PREFIX}-sum">当前条件查询工单 ${SUM_INFO.total} 条，共 ${SUM_INFO.page} 页，每页 ${SUM_INFO.page_size} 条。</div>
+							<div class="${CLASS_PREFIX}-pg-wrap" style="display:none;">
+								<div class="${CLASS_PREFIX}-pg-tip"></div>
+							</div>
+							<div class="${CLASS_PREFIX}-op-wrap">
+								<span class="${CLASS_PREFIX}-btn btn"><span>开始分析</span></span>
+							</div>
+							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
+							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:300px;"></div>
+						</div>
+					</div>
+				</dialog>`;
+
+	let $trigger = $(`<span class="tapd-free-man-trigger btn"><span>工单统计</span></span>`).appendTo('.table-action-top .abs_right');
+
+	let $panel = $(panel_html).appendTo('body');
+	let $sum_tip = $panel.find(`.${CLASS_PREFIX}-sum`);
+	let $start_btn = $panel.find(`.${CLASS_PREFIX}-btn`);
+	let $op_wrap = $panel.find(`.${CLASS_PREFIX}-op-wrap`);
+	let $pg_wrap = $panel.find(`.${CLASS_PREFIX}-pg-wrap`);
+	let $pg_tip = $pg_wrap.find(`.${CLASS_PREFIX}-pg-tip`);
+	let $status_sum = $panel.find(`.${CLASS_PREFIX}-status-sum`);
+
+	let current_page = 1;
+	let stop_flag = false;
+	let total_bug_list = [];
+	let total_change_groups = {};
+
+	$trigger.click(()=>{
+		show_panel();
+	});
+
+	$panel.find(`.${CLASS_PREFIX}-panel-close-btn`).click(() => {
+		$panel && $panel.hide();
+	});
+
+	$start_btn.click(function(){
+		$sum_tip.hide();
+		$pg_wrap.show();
+		$start_btn.addClass('.disabled');
+		if($start_btn.text() === '开始分析' || $start_btn.text() === '重新分析'){
+			current_page = 1;
+			stop_flag = false;
+			$status_sum.html('');
+			analyze_page();
+		} else {
+			$start_btn.html('<span>重新分析</span>');
+			stop_flag = true;
+		}
+	});
+
+	function add_status_sum(bug){
+		$status_sum.show();
+		let found = false;
+		$status_sum.find('li').each(function(){
+			let $li = $(this);
+			if($li.data('status') === bug.status){
+				let cnt = parseInt($li.data('cnt'), 10) + 1;
+				$li.find('.cnt').html(cnt);
+				$li.data('cnt', cnt);
+				found = true;
+				return false;
+			}
+		});
+		if(!found){
+			let idx = TAPD_HELPER.calcIndex(bug.status);
+			let html = `<li data-cnt="1" data-status="${bug.status}"><span class="cnt">1</span><span class="status">${bug.status}</span></li>`;
+			let $last = null;
+			$status_sum.find('li').each(function(){
+				let li_status = $(this).data('status');
+				if(TAPD_HELPER.calcIndex(li_status) >= idx){
+					return false;
+				}
+				$last = $(this);
+			});
+			if($last){
+				$(html).insertAfter($last);
+			} else {
+				$(html).prependTo($status_sum);
+			}
+		}
+	}
+
+	function analyze_page(){
+		if(current_page > SUM_INFO.page){
+			$pg_tip.html(`分析完成`);
+			$start_btn.find('span').html('<span>重新分析</span>');
+			return;
+		}
+		if(stop_flag){
+			stop_flag = false;
+			return;
+		}
+		$start_btn.html('<span>停止分析</span>');
+		let idx = (current_page-1)*SUM_INFO.page_size;
+		$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在分析第 ${current_page} 页数据...`);
+
+
+		TAPD_HELPER.cache('bug_list_'+current_page, ()=>{
+			return TAPD_HELPER.getBugList(current_page);
+		}).then(bug_list=>{
+			total_bug_list = total_bug_list.concat(bug_list);
+			let pt = bug_list.length;
+			let fd = ()=>{
+				let bug = bug_list.shift();
+				if(!bug || stop_flag){
+					current_page++;
+					analyze_page();
+					return;
+				}
+				add_status_sum(bug);
+				let idx = (current_page-1)*SUM_INFO.page_size + (pt-bug_list.length);
+				$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在获取工单信息：<a href="${bug.link}" target="_blank">${bug.title}</a>`);
+				TAPD_HELPER.getBugChangeListCache(bug.id).then(change_list=>{
+					total_change_groups[bug.id] = change_list;
+					update_panel();
+					fd();
+				});
+			};
+			fd();
+		});
+	}
+
+	const show_panel = () => {
+		$panel.show();
+	};
+
+	const update_panel = () => {
+		//draw flow chart
+		let $chart = $panel.find(`.${CLASS_PREFIX}-flow-chart`).show();
+		let date_serials = [];
+		let status_groups = {}; // status1->date1= 1, date1->status2 = 1,
+		for(let bug_id in total_change_groups){
+			let changes = total_change_groups[bug_id];
+
+			let tmp = {};
+			changes.forEach(change=>{
+				if(change.type === '状态' && !tmp[change.date]){ //每个工单，每天只统计最后一次变更的状态
+					date_serials.push(TAPD_HELPER.formatDate(new Date(Date.parse(change.date)), 'm/d'));
+					tmp[change.date] = true;
+					if(!status_groups[change.after]){
+						status_groups[change.after] = {[change.date]:1};
+					} else {
+						status_groups[change.after][change.date] = (status_groups[change.after][change.date] || 0)+1;
+					}
+				}
+			});
+		}
+
+		date_serials = date_serials.filter((value, index, self)=>{return self.indexOf(value) === index;});
+		date_serials = date_serials.sort((v1, v2)=>{
+			let t1 = Date.parse(v1);
+			let t2 = Date.parse(v2);
+			if(t1 === t2){
+				return 0;
+			}
+			return t1 > t2 ? 1 : -1;
+		});
+
+		let series = [];
+		for(let status in status_groups){
+			let dm = status_groups[status];
+			let tmp = [];
+			for(let date in dm){
+				tmp.push({date:date, count:dm[date]});
+			}
+			tmp = tmp.sort((v1,v2)=>{
+				let t1 = Date.parse(v1.date);
+				let t2 = Date.parse(v2.date);
+				if(t1 === t2){
+					return 0;
+				}
+				return t1 > t2 ? 1 : -1;
+			});
+			let count_serials = [];
+			tmp.forEach(obj=>{
+				count_serials.push(obj.count);
+			});
+			series.push({
+				name: status.replace(/（[^）]+）/, ''),
+				data:count_serials
+			});
+		}
+
+		let data = {
+			chart: {type: 'area'},
+			title: {text: ''},
+			xAxis: {
+				categories: date_serials,
+				title: {enabled: false}
+			},
+			yAxis: {
+				title: {
+					text: ''
+				}
+			},
+			tooltip: { pointFormat: '{series.name} 共 <b>{point.y:,.0f}</b>条工单'},
+			plotOptions: {
+				area: {
+					stacking: 'normal',
+					lineColor: '#666666',
+					lineWidth: 1
+				}
+			},
+			series: series
+		};
+		Highcharts.chart($chart[0], data);
+	};
+})();
