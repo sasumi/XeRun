@@ -1,6 +1,9 @@
 (function(){
 	console.log('content script running');
 	const WORKSPACE_ID = /tapd\.cn\/(\w+)\//.exec(location.href)[1];
+	const ONE_DAY = 86400;
+	const ONE_HOUR = 3600;
+	const ONE_MIN = 60;
 
 	let _CACHE_ = {};
 	let cache = (key, fetcher)=>{
@@ -21,6 +24,35 @@
 			return '0'+num;
 		}
 		return num;
+	};
+
+	const prettyTimeRange = (misec) => {
+		let seconds = misec/1000;
+		let str = [];
+		if(seconds > ONE_DAY){
+			let d = Math.floor(seconds / ONE_DAY);
+			str.push(`${d}天`);
+			seconds -= d * ONE_DAY;
+		}
+		if(seconds > ONE_HOUR){
+			let h = Math.floor(seconds / ONE_HOUR);
+			str.push(`${h}小时`);
+			seconds -= h * ONE_HOUR;
+		}
+		if(seconds > ONE_MIN){
+			let m = Math.floor(seconds / ONE_MIN);
+			str.push(`${m}分钟`);
+			seconds -= m * seconds;
+		}
+		return str.join(' ');
+	};
+
+	const escapeHtml = (str = '')=>{
+		return str.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g,'&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
 	};
 
 	/**
@@ -181,9 +213,16 @@
 					let title = $.trim($('a.namecol', this).text());
 					let href = $('a.namecol', this).attr('href');
 					let bug_id = $(this).attr('bug_id');
+					let current_owner  = $(this).find('td[data-editable-field=current_owner] span').attr('title');
 					let status = $(this).find(`#bug_workflow_${bug_id}`).attr('title');
 						status = status.replace(/（[^）]+）/, '');
-					bug_id_list.push({id:bug_id, title:title, link:href, status:status});
+					bug_id_list.push({
+						id:bug_id,
+						title:title,
+						link:href,
+						owner: current_owner,
+						status:status
+					});
 				});
 				console.log('bug list found', bug_id_list);
 				$iframe.remove();
@@ -218,5 +257,7 @@
 		getChangeList: get_change_list,
 		getBugChangeListCache: getBugChangeListCache,
 		getBugList: get_bug_list,
+		prettyTimeRange: prettyTimeRange,
+		escapeHtml:escapeHtml
 	};
 })();

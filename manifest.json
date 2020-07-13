@@ -30,7 +30,7 @@
 		  	"css":["assert/css/content.css"],
 			"js": [
 				"assert/js/jquery-1.8.3.min.js",
-				"assert/js/highcharts.js",
+				"assert/js/echarts.min.js",
 			  "assert/js/content.base.js",
 			  "assert/js/content.run.js"
 			],

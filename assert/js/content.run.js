@@ -7,6 +7,7 @@
 					<div class="${CLASS_PREFIX}-panel-close-btn"></div>
 					<div class="${CLASS_PREFIX}-panel-content">
 						<div class="${CLASS_PREFIX}">
+							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
 							<div class="${CLASS_PREFIX}-sum">当前条件查询工单 ${SUM_INFO.total} 条，共 ${SUM_INFO.page} 页，每页 ${SUM_INFO.page_size} 条。</div>
 							<div class="${CLASS_PREFIX}-pg-wrap" style="display:none;">
 								<div class="${CLASS_PREFIX}-pg-tip"></div>
@@ -14,8 +15,15 @@
 							<div class="${CLASS_PREFIX}-op-wrap">
 								<span class="${CLASS_PREFIX}-btn btn"><span>开始分析</span></span>
 							</div>
-							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
-							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:300px;"></div>
+							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:200px;"></div>
+							<table class="${CLASS_PREFIX}-table ${CLASS_PREFIX}-lazy-trans-top" style="display:none">
+								<caption>未扭转工单排名</caption>
+								<tbody></tbody>
+							</table>
+							<table class="${CLASS_PREFIX}-table ${CLASS_PREFIX}-unclosed-top" style="display:none;">
+								<caption>未关闭工单排名</caption>
+								<tbody></tbody>
+							</table>
 						</div>
 					</div>
 				</dialog>`;
@@ -29,6 +37,8 @@
 	let $pg_wrap = $panel.find(`.${CLASS_PREFIX}-pg-wrap`);
 	let $pg_tip = $pg_wrap.find(`.${CLASS_PREFIX}-pg-tip`);
 	let $status_sum = $panel.find(`.${CLASS_PREFIX}-status-sum`);
+	let $lazy_trans_top = $panel.find(`.${CLASS_PREFIX}-lazy-trans-top`);
+	let $unclosed_top = $panel.find(`.${CLASS_PREFIX}-unclosed-top`);
 
 	let current_page = 1;
 	let stop_flag = false;
@@ -90,6 +100,83 @@
 		}
 	}
 
+	function name_list(name_str){
+		let ns = name_str.split(';');
+		let tmp = [];
+		ns.forEach(n=>{
+			n = $.trim(n);
+			if(n){
+				tmp.push(`<span class="n">${TAPD_HELPER.escapeHtml(n)}</span>`);
+			}
+		});
+		return tmp.join('');
+	}
+
+	function add_lazy_trans_top(bug, change_list){
+		if(bug.status !== '待评估'){
+			return;
+		}
+		let last_status_time = 0;
+		change_list.forEach(change=>{
+			if(change.type === '状态'){
+				last_status_time = change.datetime;
+				return false;
+			}
+		});
+
+		if(!last_status_time){
+			return;
+		}
+
+		let offset = (new Date().getTime()) -  Date.parse(last_status_time);
+		let found = false;
+		let html = `<tr data-offset="${offset}">
+						<td><a href="${bug.link}" target="_blank" class="ti" title="${TAPD_HELPER.escapeHtml(bug.title)}">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
+						<td>${name_list(bug.owner)}</td>
+						<td class="nowrap">${bug.status}</td>
+						<td class="nowrap">${TAPD_HELPER.prettyTimeRange(offset)}</td>
+					</tr>`;
+		$lazy_trans_top.find('tr').each(function(){
+			if($(this).data('offset') < offset){
+				$(html).insertBefore(this);
+				found = true;
+				return false;
+			}
+		});
+		if(!found){
+			$(html).appendTo($lazy_trans_top.find('tbody'));
+		}
+		$lazy_trans_top.show();
+	}
+
+	function add_unclosed_top(bug, change_list){
+		let close_status_list = ['已关闭', '已转需求', '已拒绝', '待回电'];
+		if(close_status_list.indexOf(bug.status) >= 0){
+			return;
+		}
+		let create_time = change_list[0].datetime;
+
+		let offset = (new Date().getTime()) -  Date.parse(create_time);
+		let found = false;
+		let html = `<tr data-offset="${offset}">
+						<td><a href="${bug.link}" title="${TAPD_HELPER.escapeHtml(bug.title)}" target="_blank" class="ti">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
+						<td>${name_list(bug.owner)}</td>
+						<td class="nowrap">${bug.status}</td>
+						<td class="nowrap">${TAPD_HELPER.prettyTimeRange(offset)}</td>
+					</tr>`;
+		$unclosed_top.find('tr').each(function(){
+			if($(this).data('offset') < offset){
+				$(html).insertBefore(this);
+				found = true;
+				return false;
+			}
+		});
+		if(!found){
+			$(html).appendTo($unclosed_top.find('tbody'));
+		}
+		$unclosed_top.show();
+	}
+
 	function analyze_page(){
 		if(current_page > SUM_INFO.page){
 			$pg_tip.html(`分析完成`);
@@ -122,7 +209,9 @@
 				$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在获取工单信息：<a href="${bug.link}" target="_blank">${bug.title}</a>`);
 				TAPD_HELPER.getBugChangeListCache(bug.id).then(change_list=>{
 					total_change_groups[bug.id] = change_list;
-					update_panel();
+					update_flow_charts();
+					add_lazy_trans_top(bug, change_list);
+					add_unclosed_top(bug, change_list);
 					fd();
 				});
 			};
@@ -134,14 +223,13 @@
 		$panel.show();
 	};
 
-	const update_panel = () => {
+	const update_flow_charts = () => {
 		//draw flow chart
 		let $chart = $panel.find(`.${CLASS_PREFIX}-flow-chart`).show();
 		let date_serials = [];
 		let status_groups = {}; // status1->date1= 1, date1->status2 = 1,
 		for(let bug_id in total_change_groups){
 			let changes = total_change_groups[bug_id];
-
 			let tmp = {};
 			changes.forEach(change=>{
 				if(change.type === '状态' && !tmp[change.date]){ //每个工单，每天只统计最后一次变更的状态
@@ -167,7 +255,9 @@
 		});
 
 		let series = [];
+		let status_categories = [];
 		for(let status in status_groups){
+			status_categories.push(status.replace(/（[^）]+）/, ''));
 			let dm = status_groups[status];
 			let tmp = [];
 			for(let date in dm){
@@ -187,32 +277,55 @@
 			});
 			series.push({
 				name: status.replace(/（[^）]+）/, ''),
-				data:count_serials
+				type: 'line',
+				stack: '总量',
+				areaStyle: [],
+				data: count_serials
 			});
 		}
 
-		let data = {
-			chart: {type: 'area'},
-			title: {text: ''},
-			xAxis: {
-				categories: date_serials,
-				title: {enabled: false}
+		let myChart = echarts.init($chart[0]);
+		let option = {
+			title: {
+				text: ''
 			},
-			yAxis: {
-				title: {
-					text: ''
+			tooltip: {
+				trigger: 'axis',
+				axisPointer: {
+					type: 'cross',
+					label: {
+						backgroundColor: '#6a7985'
+					}
 				}
 			},
-			tooltip: { pointFormat: '{series.name} 共 <b>{point.y:,.0f}</b>条工单'},
-			plotOptions: {
-				area: {
-					stacking: 'normal',
-					lineColor: '#666666',
-					lineWidth: 1
+			legend: {
+				data: status_categories
+			},
+			toolbox: {
+				feature: {
+					saveAsImage: {}
 				}
 			},
+			grid: {
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true
+			},
+			xAxis: [
+				{
+					type: 'category',
+					boundaryGap: false,
+					data: date_serials
+				}
+			],
+			yAxis: [
+				{
+					type: 'value'
+				}
+			],
 			series: series
 		};
-		Highcharts.chart($chart[0], data);
+		myChart.setOption(option);
 	};
 })();
