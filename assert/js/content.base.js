@@ -196,20 +196,13 @@
 
 	const loadPage = (url) => {
 		return new Promise((resolve, reject) => {
-			let xhr= new XMLHttpRequest();
-			xhr.open('GET', url, true);
-			xhr.onreadystatechange= function() {
-				if(this.readyState !== 4){
-					return;
-				}
-				if (this.status!==200){
-					let err = `[${this.status}] ${this.statusText}`;
-					reject(err);
-					return;
-				}
-				return $(this.responseText);
-			};
-			xhr.send();
+			console.log('loading page', url);
+			fetch(url)
+				.then(data => data.text())
+				.then(html => {
+					console.info('page loaded, html size:'+html.length);
+					resolve($(html));
+				});
 		});
 	};
 
@@ -264,20 +257,34 @@
 	const getCommentList = ($comment_contents) => {
 		let comments = [];
 		$comment_contents.each(function(){
-			comments.author = $.trim($(this).find('.field-author').text());
-			comments.time = $.trim($(this).find('.field-time').text());
-			comments.content = $.trim($(this).find('.editor-content').text());
+			comments.push({
+				author:$.trim($(this).find('.field-author').text()),
+				time: $.trim($(this).find('.field-time').text()),
+				content: $.trim($(this).find('.editor-content').text())
+			});
 		});
 		return comments;
 	};
 
 	const getBugList = (page) => {
 		return new Promise((resolve, reject) => {
-			loadPage(getPageUrl(page)).then($node => {
+			loadPage(getPageUrl(page)).then($nodes => {
 				let bug_list = [];
-				let $trs = $node.find('#bug_list_content>tbody>tr');
-				let left_length = $trs.size();
+				let $trs = null;
+				$nodes.each(function(){
+					let $tmp = $(this).find('#bug_list_content>tbody>tr');
+					if($tmp.size()){
+						$trs = $tmp;
+						return false;
+					}
+				});
 
+				if(!$trs){
+					reject('No dom node queried');
+					return;
+				}
+
+				let left_length = $trs.size();
 				let check = () => {
 					if(left_length > 0){
 						return;
@@ -294,8 +301,23 @@
 					let status = $(this).find(`#bug_workflow_${bug_id}`).attr('title');
 					status = status.replace(/（[^）]+）/, '');
 
-					loadPage(getInfoUrl(bug_id)).then($node => {
-						let comments = getCommentList($node.find('#comment_area .comment_content'));
+					loadPage(getInfoUrl(bug_id)).then($nodes => {
+						let $cmt_wrap = null;
+						$nodes.each(function(){
+							let $tmp = $(this).find('#comment_area');
+							if($tmp.size()){
+								$cmt_wrap = $tmp;
+								return false;
+							}
+						});
+
+						if(!$cmt_wrap){
+							reject('No dom node queried');
+							return;
+						}
+
+						debugger;
+						let comments = getCommentList($cmt_wrap.find('.comment_content'));
 						console.log('bug comments got', bug_id, comments.length);
 						bug_list.push({
 							id: bug_id,
@@ -340,7 +362,6 @@
 			}
 		}, (rsp, err)=>{
 			console.warn(rsp, err);
-			debugger;
 		});
 	};
 
