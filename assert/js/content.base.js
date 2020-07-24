@@ -196,18 +196,20 @@
 
 	const loadPage = (url) => {
 		return new Promise((resolve, reject) => {
-			console.info('start loading page', url);
-			let $iframe = $('<iframe style="border:none; width:2px; height:2px; overflow:hidden; position:absolute; top:0; left:0;">').appendTo('body');
-			$iframe.on('load', () => {
-				console.info('iframe loaded', $iframe);
-				let win = $iframe[0].contentWindow;
-				resolve([$(win.document.body), $iframe]);
-			});
-			$iframe.on('error', (err) => {
-				console.error('iframe load fail', err);
-				reject(err);
-			});
-			$iframe.attr('src', url);
+			let xhr= new XMLHttpRequest();
+			xhr.open('GET', url, true);
+			xhr.onreadystatechange= function() {
+				if(this.readyState !== 4){
+					return;
+				}
+				if (this.status!==200){
+					let err = `[${this.status}] ${this.statusText}`;
+					reject(err);
+					return;
+				}
+				return $(this.responseText);
+			};
+			xhr.send();
 		});
 	};
 
@@ -271,10 +273,9 @@
 
 	const getBugList = (page) => {
 		return new Promise((resolve, reject) => {
-			loadPage(getPageUrl(page)).then($tmp => {
-				let [$body, $iframe] = $tmp;
+			loadPage(getPageUrl(page)).then($node => {
 				let bug_list = [];
-				let $trs = $body.find('#bug_list_content>tbody>tr');
+				let $trs = $node.find('#bug_list_content>tbody>tr');
 				let left_length = $trs.size();
 
 				let check = () => {
@@ -282,7 +283,6 @@
 						return;
 					}
 					console.log('bug list loaded', bug_list);
-					$iframe.remove();
 					resolve(bug_list);
 				};
 
@@ -294,9 +294,8 @@
 					let status = $(this).find(`#bug_workflow_${bug_id}`).attr('title');
 					status = status.replace(/（[^）]+）/, '');
 
-					loadPage(getInfoUrl(bug_id)).then($tmp => {
-						let [$info_body, $info_iframe] = $tmp;
-						let comments = getCommentList($info_body.find('#comment_area .comment_content'));
+					loadPage(getInfoUrl(bug_id)).then($node => {
+						let comments = getCommentList($node.find('#comment_area .comment_content'));
 						console.log('bug comments got', bug_id, comments.length);
 						bug_list.push({
 							id: bug_id,
@@ -306,7 +305,6 @@
 							comments: comments,
 							status: status
 						});
-						$info_iframe.remove();
 						left_length--;
 						check();
 					});
