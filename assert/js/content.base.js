@@ -59,7 +59,7 @@
 	 * @param {Date} date_obj
 	 * @param fmt
 	 */
-	const date_format = (date_obj, fmt) => {
+	const formatDate = (date_obj, fmt) => {
 		let pt = {
 			'Y': date_obj.getUTCFullYear(),
 			'm': num_pad_left(date_obj.getMonth() + 1),
@@ -85,7 +85,7 @@
 		'已转需求', '评审中', '待上线', '拒绝需求'
 	];
 
-	const calc_idx = (status_text)=>{
+	const calcIndex = (status_text)=>{
 		for(let i=0; i<STATUS_ORDERS.length; i++){
 			if(status_text.indexOf(STATUS_ORDERS[i]) >= 0){
 				return i;
@@ -94,23 +94,76 @@
 		return STATUS_ORDERS.length;
 	};
 
-	const in_bug_list_page = () => {
+	const inBugListPage = () => {
 		return WORKSPACE_ID && location.href.indexOf('bugtrace/bugreports') > 0;
 	};
 
-	const get_bug_total_count = () => {
+	const getBugTotalCount = () => {
 		let $filter_result_cnt = $('#filter-result-count');
 		let $all_bug_cnt = $('#all_bug_count');
 		let cnt = $filter_result_cnt.size() ? $filter_result_cnt.html() : $all_bug_cnt.html();
 		return parseInt(cnt, 10);
 	};
 
-	const get_bug_total_page = () => {
+	const getBugTotalPage = () => {
 		let ph = $('#simple_pager_div .current-page').html();
 		if(!ph){
 			return 1;
 		}
 		return parseInt(ph.split('/')[1], 10);
+	};
+
+	/**
+	 * 获取bug完成评估时间
+	 * @param bug
+	 * @param change_list
+	 */
+	const getBugFinAssessTime = (bug, change_list)=>{
+		let start_time = getBugStartTime(change_list);
+		if(!start_time){
+			return null;
+		}
+
+		let time = null;
+		for(let i=0; i<change_list.length; i++){
+			if(change_list[i].type === '状态' && change_list[i].after.indexOf('待评估') >= 0){ //最后一次完成评估时间为准
+				time = change_list[i].datetime;
+				break;
+			}
+		}
+		if(!time){
+			return null;
+		}
+		return (Date.parse(time) - Date.parse(start_time))/1000;
+	};
+
+	const getBugFinTime = (bug, change_list)=>{
+		let start_time = getBugStartTime(change_list);
+		if(!start_time){
+			console.warn('no start time resolved', change_list);
+			return null;
+		}
+		if(bug.status.indexOf('关闭') < 0){
+			return null;
+		}
+		let time = null;
+		for(let i = 0; i < change_list.length; i++){
+			if(change_list[i].type === '状态' && change_list[i].after.indexOf('已关闭') >= 0){ //最后一次完成评估时间为准
+				time = change_list[i].datetime;
+				break;
+			}
+		}
+		if(!time){
+			return null;
+		}
+		return (Date.parse(time) - Date.parse(start_time)) / 1000;
+	};
+
+	const getBugStartTime = (change_list)=>{
+		if(!change_list.length){
+			return null;
+		}
+		return change_list[change_list.length-1].datetime;
 	};
 
 	const get_bug_page_size = ()=>{
@@ -121,15 +174,15 @@
 		return parseInt(ph, 10);
 	};
 
-	const get_bug_summary_info = ()=>{
+	const getBugSummaryInfo = ()=>{
 		return {
-			total: get_bug_total_count(),
-			page: get_bug_total_page(),
+			total: getBugTotalCount(),
+			page: getBugTotalPage(),
 			page_size: get_bug_page_size(),
 		}
 	};
 
-	const get_page_url = (page = 1) => {
+	const getPageUrl = (page = 1) => {
 		let url = location.href;
 		if(url.indexOf("&page=") <= 0){
 			return url + (url.indexOf('?') >= 0 ? '&' : '?') + `page=${page}`;
@@ -137,26 +190,28 @@
 		return url.replace(/(&page=)\d+/i, "$1" + page);
 	};
 
-	const get_info_url = (bug_id) => {
-		return `://www.tapd.cn/${WORKSPACE_ID}/bugtrace/bugs/view?bug_id=${bug_id}`;
+	const getInfoUrl = (bug_id) => {
+		return `https://www.tapd.cn/${WORKSPACE_ID}/bugtrace/bugs/view?bug_id=${bug_id}`;
 	};
 
-	const load_page = (url) => {
+	const loadPage = (url) => {
 		return new Promise((resolve, reject) => {
-			let $iframe = $('<iframe>').appendTo('body');
-			$iframe.css('border:none; width:2px; height:2px; overflow:hidden; position:absolute; top:0; left:0;');
+			console.info('start loading page', url);
+			let $iframe = $('<iframe style="border:none; width:2px; height:2px; overflow:hidden; position:absolute; top:0; left:0;">').appendTo('body');
 			$iframe.on('load', () => {
+				console.info('iframe loaded', $iframe);
 				let win = $iframe[0].contentWindow;
 				resolve([$(win.document.body), $iframe]);
 			});
 			$iframe.on('error', (err) => {
+				console.error('iframe load fail', err);
 				reject(err);
 			});
 			$iframe.attr('src', url);
 		});
 	};
 
-	const get_flow_info = ($body, to_status_text) => {
+	const resolveFlowInfo = ($body, to_status_text) => {
 		let info = [];
 		$('#comments .field-active').get().reverse().each(function(){
 			let html = $(this).html();
@@ -168,10 +223,10 @@
 		return info;
 	};
 
-	const get_change_list = (bug_id) => {
+	const getChangeList = (bug_id) => {
 		let url = `https://www.tapd.cn/${WORKSPACE_ID}/bugtrace/bugs/changes_list?perpage=100&bug_id=${bug_id}&time=` + (new Date()).getTime();
 		return new Promise((resolve, reject) => {
-			console.log('fetch change list', url);
+			console.log('start fetch change list', url);
 			let xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
 			xhr.send();
@@ -188,7 +243,7 @@
 							let af = $(this).find('td').eq(2).text();
 							changes.push({
 								datetime: datetime,
-								date: date_format(new Date(Date.parse(datetime)),'Y-m-d'),
+								date: formatDate(new Date(Date.parse(datetime)),'Y-m-d'),
 								type: type,
 								before: bf,
 								after: af
@@ -204,29 +259,58 @@
 		});
 	};
 
-	const get_bug_list = (page) => {
+	const getCommentList = ($comment_contents) => {
+		let comments = [];
+		$comment_contents.each(function(){
+			comments.author = $.trim($(this).find('.field-author').text());
+			comments.time = $.trim($(this).find('.field-time').text());
+			comments.content = $.trim($(this).find('.editor-content').text());
+		});
+		return comments;
+	};
+
+	const getBugList = (page) => {
 		return new Promise((resolve, reject) => {
-			load_page(get_page_url(page)).then(param => {
-				let bug_id_list = [];
-				let [$body, $iframe] = param;
-				$body.find('#bug_list_content>tbody>tr').each(function(){
+			loadPage(getPageUrl(page)).then($tmp => {
+				let [$body, $iframe] = $tmp;
+				let bug_list = [];
+				let $trs = $body.find('#bug_list_content>tbody>tr');
+				let left_length = $trs.size();
+
+				let check = () => {
+					if(left_length > 0){
+						return;
+					}
+					console.log('bug list loaded', bug_list);
+					$iframe.remove();
+					resolve(bug_list);
+				};
+
+				$trs.each(function(){
 					let title = $.trim($('a.namecol', this).text());
 					let href = $('a.namecol', this).attr('href');
 					let bug_id = $(this).attr('bug_id');
-					let current_owner  = $(this).find('td[data-editable-field=current_owner] span').attr('title');
+					let current_owner = $(this).find('td[data-editable-field=current_owner] span').attr('title');
 					let status = $(this).find(`#bug_workflow_${bug_id}`).attr('title');
-						status = status.replace(/（[^）]+）/, '');
-					bug_id_list.push({
-						id:bug_id,
-						title:title,
-						link:href,
-						owner: current_owner,
-						status:status
+					status = status.replace(/（[^）]+）/, '');
+
+					loadPage(getInfoUrl(bug_id)).then($tmp => {
+						let [$info_body, $info_iframe] = $tmp;
+						let comments = getCommentList($info_body.find('#comment_area .comment_content'));
+						console.log('bug comments got', bug_id, comments.length);
+						bug_list.push({
+							id: bug_id,
+							title: title,
+							link: href,
+							owner: current_owner,
+							comments: comments,
+							status: status
+						});
+						$info_iframe.remove();
+						left_length--;
+						check();
 					});
 				});
-				console.log('bug list found', bug_id_list);
-				$iframe.remove();
-				resolve(bug_id_list);
 			}, reject);
 		});
 	};
@@ -242,22 +326,48 @@
 		})
 	};
 
+	const WxWorkMsgType = {
+		Markdown: "markdown",
+		Text: "text",
+		Image: "image"
+	};
+
+	const sendToWxWorkRobot = (web_hook_url,
+	    content = {type: WxWorkMsgType.Markdown, content: ""},
+	    mentions = {user_id_list: [], mobile_list: []}) => {
+		chrome.extension.sendMessage({
+			RemoteRequest:{
+				url: web_hook_url,
+				data: content
+			}
+		}, (rsp, err)=>{
+			console.warn(rsp, err);
+			debugger;
+		});
+	};
+
 	window.TAPD_HELPER = {
+		ONE_DAY: ONE_DAY,
+		ONE_HOUR: ONE_HOUR,
+		ONE_MIN: ONE_MIN,
 		cache: cache,
-		formatDate: date_format,
-		calcIndex: calc_idx,
-		inBugListPage: in_bug_list_page,
-		getBugTotalCount: get_bug_total_count,
-		getBugTotalPage: get_bug_total_page,
-		getBugSummaryInfo: get_bug_summary_info,
-		getPageUrl: get_page_url,
-		getInfoUrl: get_info_url,
-		loadPage: load_page,
-		getFlowInfo: get_flow_info,
-		getChangeList: get_change_list,
+		formatDate: formatDate,
+		calcIndex: calcIndex,
+		inBugListPage: inBugListPage,
+		getBugTotalCount: getBugTotalCount,
+		getBugFinAssessTime: getBugFinAssessTime,
+		getBugFinTime: getBugFinTime,
+		getBugTotalPage: getBugTotalPage,
+		getBugSummaryInfo: getBugSummaryInfo,
+		getPageUrl: getPageUrl,
+		getInfoUrl: getInfoUrl,
+		loadPage: loadPage,
+		getFlowInfo: resolveFlowInfo,
+		getChangeList: getChangeList,
 		getBugChangeListCache: getBugChangeListCache,
-		getBugList: get_bug_list,
+		getBugList: getBugList,
 		prettyTimeRange: prettyTimeRange,
-		escapeHtml:escapeHtml
+		escapeHtml: escapeHtml,
+		sendToWxWorkRobot: sendToWxWorkRobot
 	};
 })();

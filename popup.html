@@ -7,22 +7,61 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>TapdFreeMan</title>
 	<link rel="stylesheet" href="assert/css/popup.css">
+	<script src="assert/js/chrome.js"></script>
 	<script src="assert/js/jquery-1.8.3.min.js"></script>
 </head>
 <body>
-
-<div id="page-sum">
-	<div class="loading">
-		正在获取当前页面信息...
+<div id="page">
+	<ul class="tab" id="tab">
+		<li class="active"><span>任务</span></li>
+		<li><span>关于</span></li>
+	</ul>
+	<div id="tab-contents">
+		<div class="tab-content start-wrap">
+			<span class="btn" id="start-btn">订单分析</span>
+		</div>
+		<table class="frm tab-content" style="display:none;">
+			<tbody>
+			<tr>
+				<th>工单机器人地址</th>
+				<td>
+					<input type="url" id="web_hook_url" required style="width:300px;">
+				</td>
+			</tr>
+			<tr>
+				<th>报告内容</th>
+				<td>
+					<label>
+						<input type="checkbox" name="">
+						变化截图
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td>
+					<span class="btn" id="save-setting-btn">保存</span>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+		<div class="tab-content about-info" style="display:none;">
+			<span class="logo"></span>
+			<h2>Tapad Free Man</h2>
+			<ul class="metas">
+				<li>版本：v0.0.1</li>
+				<li>作者：<a href="http://blog.yikepi.com" target="_blank">sasumi</a></li>
+				<li>代码：<a href="https://github.com/sasumi/tapdfreeman" target="_blank">github</a></li>
+			</ul>
+			<p>
+				该软件为免费使用软件，不对使用软件过程中出现任何问题负责，请自重。
+			</p>
+			<p>
+				若使用过程有任何建议或意见，请联系作者<a href="mailto:cnsasumi@outlook.com">cnsasumi@outlook.com</a>。
+			</p>
+		</div>
 	</div>
 </div>
-<div id="start-analyze-wrap" style="display:none">
-	<div id="analyze-progress-wrap" style="display:none;">
-		<span class="progress-tip"></span>
-		<progress max="100"></progress>
-	</div>
-	<span id="start-analyze-btn" class="btn">开始分析</span>
-</div>
-<!--<script src="assert/js/popup.js"></script>-->
+<script src="assert/js/popup.js"></script>
 </body>
 </html>

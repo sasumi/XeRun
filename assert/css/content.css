@@ -13,6 +13,10 @@
 .tapd-free-man-trigger {margin-left:10px; margin-right:-10px;}
 
 .tapd-free-man-flow-chart {margin-top:20px;}
+.tapd-free-man-sub-chart-wrap {display:flex; clear:both; margin:20px 0;}
+.tapd-free-man-sub-chart {flex:1; font-size:14px; padding:0 20px;}
+.tapd-free-man-sub-chart s {text-decoration:none; font-size:18px; font-weight:bold; float:right; margin-top:-4px;}
+.tapd-free-man-sub-chart progress {width:100%; display:block;}
 
 .tapd-free-man-table {clear:both; margin-top:15px; width:100%;}
 .tapd-free-man-table caption {font-size:16px; font-weight:bold; padding:5px 10px;}
@@ -23,7 +27,7 @@
 .tapd-free-man-table .n {display:inline-block; white-space:nowrap; padding:1px 3px; background-color:#eeeeee69; text-shadow:1px 1px 1px white; border-radius:2px; margin:0 2px 2px 0;}
 .tapd-free-man-table .n:last-child {margin-right:0;}
 
-.tapd-free-man-status-sum {padding:5px; margin-bottom:10px; float:right; transition:all 0.1s linear; overflow:hidden;}
+.tapd-free-man-status-sum {margin-top:10px; transition:all 0.1s linear; overflow:hidden;}
 .tapd-free-man-status-sum:hover {background-color:white;}
 .tapd-free-man-status-sum li {float:left; margin-left:10px; border-right:1px solid #ddd; padding-right:10px;}
 .tapd-free-man-status-sum li:last-child {border-right:none;}

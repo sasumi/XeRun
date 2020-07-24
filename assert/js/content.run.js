@@ -7,7 +7,10 @@
 					<div class="${CLASS_PREFIX}-panel-close-btn"></div>
 					<div class="${CLASS_PREFIX}-panel-content">
 						<div class="${CLASS_PREFIX}">
-							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
+							<div class="${CLASS_PREFIX}-result-op-wrap" style="display:none;">
+								<span>设置</span>
+								<span class="${CLASS_PREFIX}-send-to-robot btn">发送到机器人🤖</span>
+							</div>
 							<div class="${CLASS_PREFIX}-sum">当前条件查询工单 ${SUM_INFO.total} 条，共 ${SUM_INFO.page} 页，每页 ${SUM_INFO.page_size} 条。</div>
 							<div class="${CLASS_PREFIX}-pg-wrap" style="display:none;">
 								<div class="${CLASS_PREFIX}-pg-tip"></div>
@@ -15,7 +18,10 @@
 							<div class="${CLASS_PREFIX}-op-wrap">
 								<span class="${CLASS_PREFIX}-btn btn"><span>开始分析</span></span>
 							</div>
+							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
 							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:200px;"></div>
+							<div class="${CLASS_PREFIX}-sub-chart-wrap" style="display:none;">
+							</div>
 							<table class="${CLASS_PREFIX}-table ${CLASS_PREFIX}-lazy-trans-top" style="display:none">
 								<caption>未扭转工单排名</caption>
 								<tbody></tbody>
@@ -28,8 +34,6 @@
 					</div>
 				</dialog>`;
 
-	let $trigger = $(`<span class="tapd-free-man-trigger btn"><span>工单统计</span></span>`).appendTo('.table-action-top .abs_right');
-
 	let $panel = $(panel_html).appendTo('body');
 	let $sum_tip = $panel.find(`.${CLASS_PREFIX}-sum`);
 	let $start_btn = $panel.find(`.${CLASS_PREFIX}-btn`);
@@ -39,34 +43,65 @@
 	let $status_sum = $panel.find(`.${CLASS_PREFIX}-status-sum`);
 	let $lazy_trans_top = $panel.find(`.${CLASS_PREFIX}-lazy-trans-top`);
 	let $unclosed_top = $panel.find(`.${CLASS_PREFIX}-unclosed-top`);
+	let $sub_charts = $panel.find(`.${CLASS_PREFIX}-sub-chart-wrap`);
+	let $send_to_robot_btn = $panel.find(`.${CLASS_PREFIX}-send-to-robot`);
 
 	let current_page = 1;
 	let stop_flag = false;
-	let total_bug_list = [];
+	let total_bug_groups = {};
 	let total_change_groups = {};
 
-	$trigger.click(()=>{
-		show_panel();
-	});
+	let reset = ()=>{
+		current_page = 1;
+		stop_flag = false;
+		total_bug_groups = {};
+		total_change_groups = {};
+	};
 
 	$panel.find(`.${CLASS_PREFIX}-panel-close-btn`).click(() => {
+		stop();
 		$panel && $panel.hide();
 	});
 
-	$start_btn.click(function(){
+	TAPD_HELPER_CHROME.onMessage(function(request, sender, sendResponse){
+		console.log('content on message', request);
+		if(request === 'TAPD_START_ANALLY'){
+			if(show_panel()){
+				start();
+			}
+		}
+		sendResponse();
+	});
+
+	$start_btn.click(start);
+
+	$send_to_robot_btn.click(()=>{
+		TAPD_HELPER.sendToWxWorkRobot()
+	});
+
+	function start(){
 		$sum_tip.hide();
 		$pg_wrap.show();
 		$start_btn.addClass('.disabled');
-		if($start_btn.text() === '开始分析' || $start_btn.text() === '重新分析'){
+		if($start_btn.text() === '开始分析'){
 			current_page = 1;
 			stop_flag = false;
 			$status_sum.html('');
 			analyze_page();
-		} else {
+		}
+		else if($start_btn.text() === '重新分析'){
+			location.reload();
+		}
+		else {
 			$start_btn.html('<span>重新分析</span>');
 			stop_flag = true;
 		}
-	});
+	}
+
+	function stop(){
+		reset();
+		stop_flag = true;
+	}
 
 	function add_status_sum(bug){
 		$status_sum.show();
@@ -151,6 +186,10 @@
 
 	function add_unclosed_top(bug, change_list){
 		let close_status_list = ['已关闭', '已转需求', '已拒绝', '待回电'];
+		if(!change_list.length){
+			console.warn('no change list found', bug);
+			return;
+		}
 		if(close_status_list.indexOf(bug.status) >= 0){
 			return;
 		}
@@ -191,11 +230,14 @@
 		let idx = (current_page-1)*SUM_INFO.page_size;
 		$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在分析第 ${current_page} 页数据...`);
 
-
+		console.info('start analyze page');
 		TAPD_HELPER.cache('bug_list_'+current_page, ()=>{
 			return TAPD_HELPER.getBugList(current_page);
 		}).then(bug_list=>{
-			total_bug_list = total_bug_list.concat(bug_list);
+			console.info('bug list got:', bug_list.length);
+			bug_list.forEach(bug=>{
+				total_bug_groups[bug.id] = bug;
+			});
 			let pt = bug_list.length;
 			let fd = ()=>{
 				let bug = bug_list.shift();
@@ -210,6 +252,7 @@
 				TAPD_HELPER.getBugChangeListCache(bug.id).then(change_list=>{
 					total_change_groups[bug.id] = change_list;
 					update_flow_charts();
+					update_sub_charts();
 					add_lazy_trans_top(bug, change_list);
 					add_unclosed_top(bug, change_list);
 					fd();
@@ -220,7 +263,48 @@
 	}
 
 	const show_panel = () => {
+		let show_flag = !$panel.is(':visible');
 		$panel.show();
+		return show_flag;
+	};
+
+	const update_sub_charts = ()=>{
+		//24小时完成率
+		let fin_ass_in_24_count = 0,
+			fin_ass_in_48_count = 0,
+			fin_in_120_count = 0,
+			fin_in_240_count = 0;
+
+		let total = 0;
+		for(let bug_id in total_change_groups){
+			total++;
+			let bug = total_bug_groups[bug_id];
+			let changes = total_change_groups[bug_id];
+			if(TAPD_HELPER.getBugFinAssessTime(bug, changes) <= TAPD_HELPER.ONE_DAY){
+				fin_ass_in_24_count++;
+			}
+			if(TAPD_HELPER.getBugFinAssessTime(bug, changes) <= (TAPD_HELPER.ONE_DAY*2)){
+				fin_ass_in_48_count++;
+			}
+			if(TAPD_HELPER.getBugFinTime(bug, changes) !== null && TAPD_HELPER.getBugFinTime(bug, changes) <= (TAPD_HELPER.ONE_DAY*5)){
+				fin_in_120_count++;
+			}
+			if(TAPD_HELPER.getBugFinTime(bug, changes) !== null && TAPD_HELPER.getBugFinTime(bug, changes) <= (TAPD_HELPER.ONE_DAY*10)){
+				fin_in_240_count++;
+			}
+		}
+
+		let html = '';
+		let makePercent = (percent,title)=>`<span class="${CLASS_PREFIX}-sub-chart">
+				<s>${percent}%</s>
+				<span>${title}</span>
+				<progress max="100" value="${percent}"></progress>
+				</span>`;
+		html += makePercent(Math.round(100 * fin_ass_in_24_count / total), '24小时完成评估');
+		html += makePercent(Math.round(100 * fin_ass_in_48_count / total), '48小时完成评估');
+		html += makePercent(Math.round(100 * fin_in_120_count / total), '120小时工单关闭');
+		html += makePercent(Math.round(100 * fin_in_240_count / total), '240小时工单关闭');
+		$sub_charts.html(html).show();
 	};
 
 	const update_flow_charts = () => {

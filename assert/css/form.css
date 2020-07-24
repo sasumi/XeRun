@@ -85,7 +85,11 @@ input[type=search]:hover {box-shadow: 0px 2px 1px 0px #cccccc7d;border-color:var
 
 input[type=number] {width:80px;text-align:center;}
 
-.form-item li {margin-bottom: 1em;}
-.form-item.full-item input {width:100%;}
-
 form .require-flag {color:red;}
+
+table.frm {width:100%;}
+table.frm>caption {text-align:left; padding:5px 10px; }
+table.frm>tbody>tr:nth-child(even){background-color:#eee3;}
+table.frm th, table.frm td {padding:10px 10px; text-align:left;}
+table.frm>tbody>tr>th {width:80px; white-space:nowrap; font-weight:normal;}
+table.frm>tbody>tr>th:after {content:"："}

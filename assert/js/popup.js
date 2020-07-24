@@ -1,40 +1,56 @@
-let $pg_wrap = $('#analyze-progress-wrap');
-let $progress = $pg_wrap.find('progress');
-let $pg_tip = $pg_wrap.find('.progress-tip');
-let $start_btn = $('#start-analyze-btn');
-let $start_wrap = $('#start-analyze-wrap');
-let $page_sum = $('#page-sum');
+const LS_KEY = 'setting';
+const TOAST_TIMEOUT = 1500;
 
-let PageSum = null;
-sendMessageToContentScript({cmd: 'get_bug_summary_info'}, function(response){
-	console.log('来自content的回复：', response);
-	$page_sum.html(`当前页面工单 <b>${response.total}</b> 条，<b>${response.page}</b>页，每页 <b>${response.page_size}</b>条`);
-	$start_wrap.show();
-	PageSum = response;
-});
+let $save_btn = $('#save-setting-btn');
+let $start_btn = $('#start-btn');
+let $wh_input = $('#web_hook_url');
+let $tabs = $('#tab li');
+let $tab_contents = $('.tab-content');
+let $toast;
 
 $start_btn.click(function(){
-	start_analyze(0);
+	TAPD_HELPER_CHROME.sendMessageToContent('TAPD_START_ANALLY', (error)=>{
+		if(!error){
+			window.close();
+		} else {
+			console.error('TAPD_START_ANALLY', error);
+		}
+	});
 });
 
-function start_analyze(item_index){
-	$pg_wrap.show();
-	$pg_tip.html('正在分析工单...');
-	page = Math.ceil(item_index / PageSum.page_size);
+$tabs.click(function(){
+	$tabs.removeClass('active');
+	$(this).addClass('active');
+	$tab_contents.hide();
+	$tab_contents.eq($(this).index()).show();
+});
+
+$save_btn.click(function(){
+	save_setting({
+		web_hook_url: $.trim($wh_input.val())
+	});
+	show_toast('保存成功');
+});
+
+let setting = read_setting();
+$wh_input.val(setting.web_hook_url || '');
+
+function save_setting(setting = {}){
+	window.localStorage.setItem(LS_KEY, JSON.stringify(setting));
 }
 
-function sendMessageToContentScript(message, callback){
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-		chrome.tabs.sendMessage(tabs[0].id, message, function(response){
-			if(callback){
-				callback(response)
-			}
-		});
-	});
+function read_setting(){
+	let s = window.localStorage.getItem(LS_KEY);
+	return s ? JSON.parse(s) : {};
 }
 
-function getCurrentTabId(callback){
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-		if(callback) callback(tabs.length ? tabs[0].id : null);
-	});
+function show_toast(msg, type='success'){
+	if(!$toast){
+		$toast = $(`<div id="toast" class="${type}"></div>`).appendTo('body');
+	}
+	$toast.html(msg).show();
+	clearTimeout($toast.timer);
+	$toast.timer = setTimeout(() => {
+		$toast.hide();
+	}, TOAST_TIMEOUT);
 }
