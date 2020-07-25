@@ -27,6 +27,8 @@
 .tapd-free-man-table .n {display:inline-block; white-space:nowrap; padding:1px 3px; background-color:#eeeeee69; text-shadow:1px 1px 1px white; border-radius:2px; margin:0 2px 2px 0;}
 .tapd-free-man-table .n:last-child {margin-right:0;}
 
+.tapd-free-man-export-data {max-height:200px; overflow:auto;}
+
 .tapd-free-man-status-sum {margin-top:10px; transition:all 0.1s linear; overflow:hidden;}
 .tapd-free-man-status-sum:hover {background-color:white;}
 .tapd-free-man-status-sum li {float:left; margin-left:10px; border-right:1px solid #ddd; padding-right:10px;}

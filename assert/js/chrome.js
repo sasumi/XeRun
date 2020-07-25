@@ -4,10 +4,6 @@
 		chrome.runtime.sendMessage(msgObj, onResponse);
 	};
 
-	const sendExtensionMessage = ()=>{
-
-	};
-
 	const onMessage = (handler) => {
 		chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			console.debug('backgroundOnMessage', request);

@@ -166,6 +166,53 @@
 		return change_list[change_list.length-1].datetime;
 	};
 
+	const copyHtml = (html)=>{
+		// Create container for the HTML
+		// [1]
+		let container = document.createElement('div');
+		container.innerHTML = html;
+
+		// Hide element
+		// [2]
+		container.style.position = 'fixed';
+		container.style.pointerEvents = 'none';
+		container.style.opacity = 0;
+
+		// Detect all style sheets of the page
+		let activeSheets = Array.prototype.slice.call(document.styleSheets)
+			.filter(function(sheet){
+				return !sheet.disabled
+			});
+
+		// Mount the iframe to the DOM to make `contentWindow` available
+		// [3]
+		document.body.appendChild(container);
+
+		// Copy to clipboard
+		// [4]
+		window.getSelection().removeAllRanges();
+
+		let range = document.createRange();
+		range.selectNode(container);
+		window.getSelection().addRange(range);
+
+		// [5.1]
+		document.execCommand('copy');
+
+		// [5.2]
+		for(let i = 0; i < activeSheets.length; i++) activeSheets[i].disabled = true
+
+		// [5.3]
+		document.execCommand('copy');
+
+		// [5.4]
+		for(let i = 0; i < activeSheets.length; i++) activeSheets[i].disabled = false
+
+		// Remove the iframe
+		// [6]
+		document.body.removeChild(container)
+	};
+
 	const get_bug_page_size = ()=>{
 		let ph = $('#num-per-page .current').html();
 		if(!ph){
@@ -190,6 +237,30 @@
 		return url.replace(/(&page=)\d+/i, "$1" + page);
 	};
 
+	const resolve_bug_info = (html)=>{
+		let tmp = /var\s+default_value\s*=\s*(.*)/i.exec(html);
+		let a;
+		try {
+			eval(`a = ${tmp[1]};`);
+		} catch(err){
+			console.error(err);
+		}
+		return a;
+	};
+
+	const query_selector = (html, selector)=>{
+		let $ret;
+		let $nodes = $(html);
+		$nodes.each(function(){
+			let $tmp = $(this).find(selector);
+			if($tmp.size()){
+				$ret = $tmp;
+				return false;
+			}
+		});
+		return $ret;
+	};
+
 	const getInfoUrl = (bug_id) => {
 		return `https://www.tapd.cn/${WORKSPACE_ID}/bugtrace/bugs/view?bug_id=${bug_id}`;
 	};
@@ -201,7 +272,7 @@
 				.then(data => data.text())
 				.then(html => {
 					console.info('page loaded, html size:'+html.length);
-					resolve($(html));
+					resolve(html);
 				});
 		});
 	};
@@ -268,17 +339,9 @@
 
 	const getBugList = (page) => {
 		return new Promise((resolve, reject) => {
-			loadPage(getPageUrl(page)).then($nodes => {
+			loadPage(getPageUrl(page)).then(html => {
 				let bug_list = [];
-				let $trs = null;
-				$nodes.each(function(){
-					let $tmp = $(this).find('#bug_list_content>tbody>tr');
-					if($tmp.size()){
-						$trs = $tmp;
-						return false;
-					}
-				});
-
+				let $trs = query_selector(html, '#bug_list_content>tbody>tr');
 				if(!$trs){
 					reject('No dom node queried');
 					return;
@@ -301,32 +364,36 @@
 					let status = $(this).find(`#bug_workflow_${bug_id}`).attr('title');
 					status = status.replace(/（[^）]+）/, '');
 
-					loadPage(getInfoUrl(bug_id)).then($nodes => {
-						let $cmt_wrap = null;
-						$nodes.each(function(){
-							let $tmp = $(this).find('#comment_area');
-							if($tmp.size()){
-								$cmt_wrap = $tmp;
-								return false;
-							}
-						});
-
+					loadPage(getInfoUrl(bug_id)).then(html => {
+						let $cmt_wrap = query_selector(html, '#comment_area');
 						if(!$cmt_wrap){
 							reject('No dom node queried');
 							return;
 						}
-
-						debugger;
 						let comments = getCommentList($cmt_wrap.find('.comment_content'));
 						console.log('bug comments got', bug_id, comments.length);
-						bug_list.push({
+
+						let info = resolve_bug_info(html);
+						let content_html = info.description;
+						let content_text = info.description;
+						if(!content_html){
+							reject('no description html found');
+							return false;
+						}
+
+						let bug = {
 							id: bug_id,
 							title: title,
 							link: href,
+							create_at: info.created,
+							content_text: content_text,
+							content_html: content_html,
 							owner: current_owner,
 							comments: comments,
 							status: status
-						});
+						};
+						console.info('bug resolved', bug);
+						bug_list.push(bug);
 						left_length--;
 						check();
 					});
@@ -370,6 +437,7 @@
 		ONE_HOUR: ONE_HOUR,
 		ONE_MIN: ONE_MIN,
 		cache: cache,
+		copyHtml: copyHtml,
 		formatDate: formatDate,
 		calcIndex: calcIndex,
 		inBugListPage: inBugListPage,

@@ -20,7 +20,26 @@
 							</div>
 							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
 							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:200px;"></div>
-							<div class="${CLASS_PREFIX}-sub-chart-wrap" style="display:none;">
+							<div class="${CLASS_PREFIX}-sub-chart-wrap" style="display:none;"></div>
+							<div class="${CLASS_PREFIX}-export-data">
+								<table class="${CLASS_PREFIX}-table">
+									<caption>数据导出预览 <span class="btn" id="copy-export-data-btn">复制</span></caption>
+									<thead>
+										<tr>
+											<th>标题</th>
+											<th>内容</th>
+											<th>创建时间</th>
+											<th>状态</th>
+											<th>评论1</th>
+											<th>评论2</th>
+											<th>评论3</th>
+											<th>评论4</th>
+											<th>评论5</th>
+											<th>评论6</th>
+										</tr>
+									</thead>
+									<tbody></tbody>
+								</table>
 							</div>
 							<table class="${CLASS_PREFIX}-table ${CLASS_PREFIX}-lazy-trans-top" style="display:none">
 								<caption>未扭转工单排名</caption>
@@ -45,6 +64,8 @@
 	let $unclosed_top = $panel.find(`.${CLASS_PREFIX}-unclosed-top`);
 	let $sub_charts = $panel.find(`.${CLASS_PREFIX}-sub-chart-wrap`);
 	let $send_to_robot_btn = $panel.find(`.${CLASS_PREFIX}-send-to-robot`);
+	let $export_data = $panel.find(`.${CLASS_PREFIX}-export-data`);
+	let $copy_export_data_btn = $export_data.find('#copy-export-data-btn');
 
 	let current_page = 1;
 	let stop_flag = false;
@@ -57,6 +78,12 @@
 		total_bug_groups = {};
 		total_change_groups = {};
 	};
+
+	$copy_export_data_btn.click(function(){
+		debugger;
+		TAPD_HELPER.copyHtml($export_data.htmlJ());
+		alert('复制成功');
+	});
 
 	$panel.find(`.${CLASS_PREFIX}-panel-close-btn`).click(() => {
 		stop();
@@ -101,6 +128,30 @@
 	function stop(){
 		reset();
 		stop_flag = true;
+	}
+
+	function add_data_tbl(bug){
+		let comment_html_list = '';
+		bug.comments.forEach(cmt=>{
+			comment_html_list +=
+				`<td>
+					${TAPD_HELPER.escapeHtml(cmt.author)}（${cmt.time}）：
+					${TAPD_HELPER.escapeHtml(cmt.content)}
+				</td>`;
+		});
+		let html =
+				`<tr>
+					<td><a href="${bug.link}" target="_blank">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
+					<td>
+						<span style="display:inline-block; height:30px; max-width:100px; overflow:hidden">
+							${TAPD_HELPER.escapeHtml(bug.content_text)}
+						</span>
+					</td>
+					<td>${bug.create_at}</td>
+					<td>${bug.status}</td>
+					${comment_html_list}
+				</tr>`;
+		$(html).appendTo($export_data.find('tbody'));
 	}
 
 	function add_status_sum(bug){
@@ -247,6 +298,7 @@
 					return;
 				}
 				add_status_sum(bug);
+				add_data_tbl(bug);
 				let idx = (current_page-1)*SUM_INFO.page_size + (pt-bug_list.length);
 				$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在获取工单信息：<a href="${bug.link}" target="_blank">${bug.title}</a>`);
 				TAPD_HELPER.getBugChangeListCache(bug.id).then(change_list=>{
