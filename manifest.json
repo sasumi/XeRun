@@ -32,6 +32,7 @@
 	  ],
 	  "js": [
 		"assert/js/chrome.js",
+		"assert/js/xlsx.core.min.js",
 		"assert/js/jquery-1.8.3.min.js",
 		"assert/js/echarts.min.js",
 		"assert/js/content.base.js",

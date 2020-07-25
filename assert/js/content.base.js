@@ -166,51 +166,80 @@
 		return change_list[change_list.length-1].datetime;
 	};
 
-	const copyHtml = (html)=>{
-		// Create container for the HTML
-		// [1]
-		let container = document.createElement('div');
-		container.innerHTML = html;
+	/**
+	 * 通用的打开下载对话框方法，没有测试过具体兼容性
+	 * @param url 下载地址，也可以是一个blob对象，必选
+	 * @param saveName 保存文件名，可选
+	 */
+	function openDownloadDialog(url, saveName){
+		if(typeof url == 'object' && url instanceof Blob){
+			url = URL.createObjectURL(url); // 创建blob地址
+		}
+		let aLink = document.createElement('a');
+		aLink.href = url;
+		aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+		let event;
+		if(window.MouseEvent) event = new MouseEvent('click');
+		else{
+			event = document.createEvent('MouseEvents');
+			event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+		}
+		aLink.dispatchEvent(event);
+	}
 
-		// Hide element
-		// [2]
-		container.style.position = 'fixed';
-		container.style.pointerEvents = 'none';
-		container.style.opacity = 0;
+	/**
+	 * 字符串转ArrayBuffer
+	 * @param s
+	 * @returns {ArrayBuffer}
+	 */
+	function s2ab(s) {
+		let buf = new ArrayBuffer(s.length);
+		let view = new Uint8Array(buf);
+		for (let i=0; i!==s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+		return buf;
+	}
 
-		// Detect all style sheets of the page
-		let activeSheets = Array.prototype.slice.call(document.styleSheets)
-			.filter(function(sheet){
-				return !sheet.disabled
+	/**
+	 * 将一个sheet转成最终的excel文件的blob对象，然后利用URL.createObjectURL下载
+	 * @param sheet
+	 * @param sheetName
+	 * @returns {Blob}
+	 */
+	function sheet2blob(sheet, sheetName) {
+		sheetName = sheetName || 'sheet1';
+		let workbook = {
+			SheetNames: [sheetName],
+			Sheets: {}
+		};
+		workbook.Sheets[sheetName] = sheet;
+		// 生成excel的配置项
+		let wopts = {
+			bookType: 'xlsx', // 要生成的文件类型
+			bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+			type: 'binary'
+		};
+		let wbout = XLSX.write(workbook, wopts);
+		return new Blob([s2ab(wbout)], {type:"application/octet-stream"});
+	}
+
+	const downloadTable = ($table, filename = '导出.xlsx') => {
+		let aoa = [];
+		let row = [];
+		$table.find('thead>tr>th').each(function(){
+			let $th = $(this);
+			row.push($th.text());
+		});
+		aoa.push(row);
+
+		$table.find('tbody>tr').each(function(){
+			let row = [];
+			$(this).find('td').each(function(){
+				row.push($(this).text());
 			});
-
-		// Mount the iframe to the DOM to make `contentWindow` available
-		// [3]
-		document.body.appendChild(container);
-
-		// Copy to clipboard
-		// [4]
-		window.getSelection().removeAllRanges();
-
-		let range = document.createRange();
-		range.selectNode(container);
-		window.getSelection().addRange(range);
-
-		// [5.1]
-		document.execCommand('copy');
-
-		// [5.2]
-		for(let i = 0; i < activeSheets.length; i++) activeSheets[i].disabled = true
-
-		// [5.3]
-		document.execCommand('copy');
-
-		// [5.4]
-		for(let i = 0; i < activeSheets.length; i++) activeSheets[i].disabled = false
-
-		// Remove the iframe
-		// [6]
-		document.body.removeChild(container)
+			aoa.push(row);
+		});
+		let sheet = XLSX.utils.aoa_to_sheet(aoa);
+		openDownloadDialog(sheet2blob(sheet), filename);
 	};
 
 	const get_bug_page_size = ()=>{
@@ -337,6 +366,12 @@
 		return comments;
 	};
 
+	const resolveTextFromHtml = (html)=>{
+		let $tmp = $('<div style="display:none"></div>').html(html);
+		['style', 'script'].forEach(tag => $tmp.find(tag).remove());
+		return $tmp.text();
+	};
+
 	const getBugList = (page) => {
 		return new Promise((resolve, reject) => {
 			loadPage(getPageUrl(page)).then(html => {
@@ -375,7 +410,7 @@
 
 						let info = resolve_bug_info(html);
 						let content_html = info.description;
-						let content_text = info.description;
+						let content_text = resolveTextFromHtml(info.description);
 						if(!content_html){
 							reject('no description html found');
 							return false;
@@ -437,7 +472,7 @@
 		ONE_HOUR: ONE_HOUR,
 		ONE_MIN: ONE_MIN,
 		cache: cache,
-		copyHtml: copyHtml,
+		downloadTable:downloadTable,
 		formatDate: formatDate,
 		calcIndex: calcIndex,
 		inBugListPage: inBugListPage,

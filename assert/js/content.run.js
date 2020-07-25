@@ -7,9 +7,8 @@
 					<div class="${CLASS_PREFIX}-panel-close-btn"></div>
 					<div class="${CLASS_PREFIX}-panel-content">
 						<div class="${CLASS_PREFIX}">
-							<div class="${CLASS_PREFIX}-result-op-wrap" style="display:none;">
-								<span>设置</span>
-								<span class="${CLASS_PREFIX}-send-to-robot btn">发送到机器人🤖</span>
+							<div class="${CLASS_PREFIX}-result-op-wrap">
+								<span class="btn ${CLASS_PREFIX}-copy-export-data-btn"><span>保存数据</span></span>
 							</div>
 							<div class="${CLASS_PREFIX}-sum">当前条件查询工单 ${SUM_INFO.total} 条，共 ${SUM_INFO.page} 页，每页 ${SUM_INFO.page_size} 条。</div>
 							<div class="${CLASS_PREFIX}-pg-wrap" style="display:none;">
@@ -21,11 +20,13 @@
 							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
 							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:200px;"></div>
 							<div class="${CLASS_PREFIX}-sub-chart-wrap" style="display:none;"></div>
-							<div class="${CLASS_PREFIX}-export-data">
+							<div class="${CLASS_PREFIX}-export-data" style="display:none;">
 								<table class="${CLASS_PREFIX}-table">
-									<caption>数据导出预览 <span class="btn" id="copy-export-data-btn">复制</span></caption>
+									<caption>数据导出预览 </caption>
 									<thead>
 										<tr>
+											<th>ID</th>
+											<th>链接</th>
 											<th>标题</th>
 											<th>内容</th>
 											<th>创建时间</th>
@@ -65,7 +66,7 @@
 	let $sub_charts = $panel.find(`.${CLASS_PREFIX}-sub-chart-wrap`);
 	let $send_to_robot_btn = $panel.find(`.${CLASS_PREFIX}-send-to-robot`);
 	let $export_data = $panel.find(`.${CLASS_PREFIX}-export-data`);
-	let $copy_export_data_btn = $export_data.find('#copy-export-data-btn');
+	let $copy_export_data_btn = $panel.find(`.${CLASS_PREFIX}-copy-export-data-btn`);
 
 	let current_page = 1;
 	let stop_flag = false;
@@ -81,8 +82,7 @@
 
 	$copy_export_data_btn.click(function(){
 		debugger;
-		TAPD_HELPER.copyHtml($export_data.htmlJ());
-		alert('复制成功');
+		TAPD_HELPER.downloadTable($export_data);
 	});
 
 	$panel.find(`.${CLASS_PREFIX}-panel-close-btn`).click(() => {
@@ -141,6 +141,8 @@
 		});
 		let html =
 				`<tr>
+					<td>${bug.id}</td>
+					<td>${bug.link}</td>
 					<td><a href="${bug.link}" target="_blank">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
 					<td>
 						<span style="display:inline-block; height:30px; max-width:100px; overflow:hidden">
