@@ -81,8 +81,7 @@
 	};
 
 	$copy_export_data_btn.click(function(){
-		debugger;
-		TAPD_HELPER.downloadTable($export_data);
+		TAPD_HELPER.downloadTable($export_data, '工单统计' + TAPD_HELPER.formatDate(new Date(), 'Ymd')+'.xlsx');
 	});
 
 	$panel.find(`.${CLASS_PREFIX}-panel-close-btn`).click(() => {

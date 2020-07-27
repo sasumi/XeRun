@@ -68,14 +68,9 @@
 			'i': num_pad_left(date_obj.getUTCMinutes()),
 			's': num_pad_left(date_obj.getUTCSeconds()),
 		};
-
 		let ret = '';
 		for(let i=0; i<fmt.length; i++){
-			if(pt[fmt[i]]){
-				ret += pt[fmt[i]];
-			} else {
-				ret += fmt[i];
-			}
+			ret += pt[fmt[i]] || fmt[i];
 		}
 		return ret;
 	};
@@ -222,7 +217,7 @@
 		return new Blob([s2ab(wbout)], {type:"application/octet-stream"});
 	}
 
-	const downloadTable = ($table, filename = '导出.xlsx') => {
+	const downloadTable = ($table, filename) => {
 		let aoa = [];
 		let row = [];
 		$table.find('thead>tr>th').each(function(){
