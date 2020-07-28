@@ -11,6 +11,7 @@
 #toast.loading {background-color:rgba(61, 173, 70, 0.51);}
 
 .start-wrap {text-align:center; padding:20px 0;}
+#error {display:block; color:red; padding:1em 0;}
 
 .about-info {padding:20px 20px 20px 60px;}
 .about-info h2 {font-size:16px;}

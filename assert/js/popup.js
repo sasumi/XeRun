@@ -9,6 +9,9 @@ let $tab_contents = $('.tab-content');
 let $toast;
 
 $start_btn.click(function(){
+	if($start_btn.hasClass('btn-disabled')){
+		return;
+	}
 	TAPD_HELPER_CHROME.sendMessageToContent('TAPD_START_ANALLY', (error)=>{
 		if(!error){
 			window.close();
@@ -16,6 +19,13 @@ $start_btn.click(function(){
 			console.error('TAPD_START_ANALLY', error);
 		}
 	});
+});
+
+TAPD_HELPER_CHROME.sendMessageToContent('TAPD_ON_SUPPORT', (support)=>{
+	if(!support){
+		$('#error').html('请在TAPD工单列表页中使用该插件！').show();
+		$start_btn.addClass('btn-disabled');
+	}
 });
 
 $tabs.click(function(){
@@ -31,6 +41,7 @@ $save_btn.click(function(){
 	});
 	show_toast('保存成功');
 });
+
 
 let setting = read_setting();
 $wh_input.val(setting.web_hook_url || '');

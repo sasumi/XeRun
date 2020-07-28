@@ -1,6 +1,8 @@
 (function(){
 	console.log('content script running');
-	const WORKSPACE_ID = /tapd\.cn\/(\w+)\//.exec(location.href)[1];
+	let tmp = /tapd\.cn\/(\w+)\//.exec(location.href);
+	const WORKSPACE_ID = tmp ? tmp[1] : null;
+
 	const ONE_DAY = 86400;
 	const ONE_HOUR = 3600;
 	const ONE_MIN = 60;
@@ -467,6 +469,7 @@
 		ONE_DAY: ONE_DAY,
 		ONE_HOUR: ONE_HOUR,
 		ONE_MIN: ONE_MIN,
+		WORKSPACE_ID: WORKSPACE_ID,
 		cache: cache,
 		downloadTable:downloadTable,
 		formatDate: formatDate,

@@ -92,12 +92,21 @@
 
 	TAPD_HELPER_CHROME.onMessage(function(request, sender, sendResponse){
 		console.log('content on message', request);
-		if(request === 'TAPD_START_ANALLY'){
-			if(show_panel()){
-				start();
-			}
+		switch(request){
+			case 'TAPD_START_ANALLY':
+				if(show_panel()){
+					start();
+				}
+				sendResponse();
+				break;
+
+			case 'TAPD_ON_SUPPORT':
+				sendResponse(!!TAPD_HELPER.WORKSPACE_ID && /\/bugtrace\//i.test(location.href));
+				break;
+			default:
+				console.error(request);
+				throw "No request type support";
 		}
-		sendResponse();
 	});
 
 	$start_btn.click(start);
