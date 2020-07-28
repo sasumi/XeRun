@@ -415,6 +415,7 @@
 							id: bug_id,
 							title: title,
 							link: href,
+							bug_type: info.bugtype,
 							create_at: info.created,
 							content_text: content_text,
 							content_html: content_html,

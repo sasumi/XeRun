@@ -28,6 +28,7 @@
 											<th>ID</th>
 											<th>链接</th>
 											<th>标题</th>
+											<th>缺陷类型</th>
 											<th>内容</th>
 											<th>创建时间</th>
 											<th>状态</th>
@@ -143,6 +144,7 @@
 					<td>${bug.id}</td>
 					<td>${bug.link}</td>
 					<td><a href="${bug.link}" target="_blank">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
+					<td>${bug.bug_type}</td>
 					<td>
 						<span style="display:inline-block; height:30px; max-width:100px; overflow:hidden">
 							${TAPD_HELPER.escapeHtml(bug.content_text)}
