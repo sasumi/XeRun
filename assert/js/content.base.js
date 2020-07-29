@@ -456,10 +456,9 @@
 	    content = {type: WxWorkMsgType.Markdown, content: ""},
 	    mentions = {user_id_list: [], mobile_list: []}) => {
 		chrome.extension.sendMessage({
-			RemoteRequest:{
-				url: web_hook_url,
-				data: content
-			}
+			type:'RemoteRequest',
+			url: web_hook_url,
+			data: content
 		}, (rsp, err)=>{
 			console.warn(rsp, err);
 		});

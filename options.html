@@ -10,10 +10,17 @@
 </head>
 <body>
 	<section class="page">
-		<h1><span>TapdFreeMan</span></h1>
-		<span class="sub">Option Page</span>
+		<h1><span>TapdFreeMan 设置</span></h1>
 		<table class="frm tab-content">
 			<tbody>
+			<tr>
+				<th>导出字段</th>
+				<td>
+					<span class="link" id="ef-select-all">全选</span> |
+					<span class="link" id="ef-select-none">取消全选</span>
+					<ul id="export-fields"></ul>
+				</td>
+			</tr>
 			<tr>
 				<th>工单机器人地址</th>
 				<td>
@@ -32,11 +39,13 @@
 			<tr>
 				<td></td>
 				<td>
-					<span class="btn" id="save-setting-btn">保存</span>
+					<span class="btn btn-disabled" id="save-setting-btn">保存</span>
 				</td>
 			</tr>
 			</tbody>
 		</table>
 	</section>
+	<script src="assert/js/chrome.js"></script>
+	<script src="assert/js/options.js"></script>
 </body>
 </html>

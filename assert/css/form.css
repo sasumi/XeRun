@@ -90,6 +90,6 @@ form .require-flag {color:red;}
 table.frm {width:100%;}
 table.frm>caption {text-align:left; padding:5px 10px; }
 table.frm>tbody>tr:nth-child(even){background-color:#eee3;}
-table.frm th, table.frm td {padding:10px 10px; text-align:left;}
+table.frm th, table.frm td {padding:10px 10px; text-align:left; vertical-align:top;}
 table.frm>tbody>tr>th {width:80px; white-space:nowrap; font-weight:normal;}
 table.frm>tbody>tr>th:after {content:"："}

@@ -23,23 +23,7 @@
 							<div class="${CLASS_PREFIX}-export-data" style="display:none;">
 								<table class="${CLASS_PREFIX}-table">
 									<caption>数据导出预览 </caption>
-									<thead>
-										<tr>
-											<th>ID</th>
-											<th>链接</th>
-											<th>标题</th>
-											<th>缺陷类型</th>
-											<th>内容</th>
-											<th>创建时间</th>
-											<th>状态</th>
-											<th>评论1</th>
-											<th>评论2</th>
-											<th>评论3</th>
-											<th>评论4</th>
-											<th>评论5</th>
-											<th>评论6</th>
-										</tr>
-									</thead>
+									<thead><tr></tr></thead>
 									<tbody></tbody>
 								</table>
 							</div>
@@ -73,6 +57,17 @@
 	let stop_flag = false;
 	let total_bug_groups = {};
 	let total_change_groups = {};
+
+	const getExportFields = (()=>{
+		let export_fields = null;
+		return function(cb){
+			if(export_fields){
+				cb(export_fields);
+			} else {
+				TAPD_HELPER_CHROME.sendMessageToBackground({type:'getExportFields'}, cb);
+			}
+		};
+	})();
 
 	let reset = ()=>{
 		current_page = 1;
@@ -140,30 +135,40 @@
 	}
 
 	function add_data_tbl(bug){
-		let comment_html_list = '';
-		bug.comments.forEach(cmt=>{
-			comment_html_list +=
-				`<td>
-					${TAPD_HELPER.escapeHtml(cmt.author)}（${cmt.time}）：
-					${TAPD_HELPER.escapeHtml(cmt.content)}
-				</td>`;
+		getExportFields(export_fields=>{
+			if(!$export_data.find('thead th').size()){
+				let th_html = '';
+				for(let k in export_fields){
+					if(k === 'comment_list'){
+						th_html += `<th>评论1</th><th>评论2</th><th>评论3</th><th>评论4</th><th>评论5</th><th>评论6</th>`;
+					} else {
+						th_html += `<th>${export_fields[k]}</th>`;
+					}
+				}
+				$export_data.find('thead tr').html(th_html);
+			}
+
+			let html = '<tr>';
+			for(let k in export_fields){
+				if(k === 'comment_list'){
+					let comment_html_list = '';
+					bug.comments.forEach(cmt=>{
+						comment_html_list +=
+							`<td>
+								${TAPD_HELPER.escapeHtml(cmt.author)}（${cmt.time}）：
+								${TAPD_HELPER.escapeHtml(cmt.content)}
+							</td>`;
+					});
+					html += comment_html_list;
+					continue;
+				}
+				if(bug[k] !== null){
+					html += `<td>${TAPD_HELPER.escapeHtml(bug[k])}</td>`;
+				}
+			}
+			html += '</tr>';
+			$(html).appendTo($export_data.find('tbody'));
 		});
-		let html =
-				`<tr>
-					<td>${bug.id}</td>
-					<td>${bug.link}</td>
-					<td><a href="${bug.link}" target="_blank">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
-					<td>${bug.bug_type}</td>
-					<td>
-						<span style="display:inline-block; height:30px; max-width:100px; overflow:hidden">
-							${TAPD_HELPER.escapeHtml(bug.content_text)}
-						</span>
-					</td>
-					<td>${bug.create_at}</td>
-					<td>${bug.status}</td>
-					${comment_html_list}
-				</tr>`;
-		$(html).appendTo($export_data.find('tbody'));
 	}
 
 	function add_status_sum(bug){
