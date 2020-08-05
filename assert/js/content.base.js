@@ -436,9 +436,9 @@
 	};
 
 	const getBugChangeListCache = (bug_id)=>{
-		return TAPD_HELPER.cache(bug_id, ()=>{
+		return TAPD_HELPER_BASE.cache(bug_id, ()=>{
 			return new Promise((resolve, reject) => {
-				TAPD_HELPER.getChangeList(bug_id).then(change_list=>{
+				TAPD_HELPER_BASE.getChangeList(bug_id).then(change_list=>{
 					console.log('change list for bug', bug_id, change_list);
 					resolve(change_list);
 				});
@@ -464,13 +464,13 @@
 		});
 	};
 
-	window.TAPD_HELPER = {
+	window.TAPD_HELPER_BASE = {
 		ONE_DAY: ONE_DAY,
 		ONE_HOUR: ONE_HOUR,
 		ONE_MIN: ONE_MIN,
 		WORKSPACE_ID: WORKSPACE_ID,
 		cache: cache,
-		downloadTable:downloadTable,
+		downloadTable: downloadTable,
 		formatDate: formatDate,
 		calcIndex: calcIndex,
 		inBugListPage: inBugListPage,

@@ -16,30 +16,37 @@
 			<tr>
 				<th>导出字段</th>
 				<td>
-					<span class="link" id="ef-select-all">全选</span> |
-					<span class="link" id="ef-select-none">取消全选</span>
-					<ul id="export-fields"></ul>
+					<span class="link ef-select-all">全选</span> |
+					<span class="link ef-select-none">取消全选</span>
+					<ul id="export-fields" class="check-list"></ul>
 				</td>
 			</tr>
 			<tr>
 				<th>工单机器人地址</th>
 				<td>
-					<input type="url" id="web_hook_url" required style="width:300px;">
+					<input type="url" id="web_hook_url" value="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=2f670c93-74c5-4d09-bb60-2c437fef1449" required style="width:300px;">
 				</td>
 			</tr>
 			<tr>
 				<th>报告内容</th>
 				<td>
-					<label>
-						<input type="checkbox" name="">
-						变化截图
-					</label>
+					<span class="link ef-select-all">全选</span> |
+					<span class="link ef-select-none">取消全选</span>
+					<ul class="check-list" id="report-fields">
+						<li><label><input type="checkbox"> @到具体开发</label></li>
+						<li><label><input type="checkbox"> 状态统计</label></li>
+						<li><label><input type="checkbox"> 变化截图</label></li>
+						<li><label><input type="checkbox"> 评估、关闭占比</label></li>
+						<li><label><input type="checkbox"> 未扭转工单清单（前10）</label></li>
+						<li><label><input type="checkbox"> 未关闭工单（前10）</label></li>
+					</ul>
 				</td>
 			</tr>
 			<tr>
 				<td></td>
 				<td>
 					<span class="btn btn-disabled" id="save-setting-btn">保存</span>
+					<a href="popup.html" class="btn" id="cancel-setting-btn">取消</a>
 				</td>
 			</tr>
 			</tbody>

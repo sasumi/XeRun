@@ -1,5 +1,5 @@
 (function(){
-	const SUM_INFO = TAPD_HELPER.getBugSummaryInfo();
+	const SUM_INFO = TAPD_HELPER_BASE.getBugSummaryInfo();
 	const CLASS_PREFIX = 'tapd-free-man';
 
 	let panel_html = `<dialog class="${CLASS_PREFIX}-panel" style="display:none;">
@@ -69,21 +69,20 @@
 		};
 	})();
 
-	let reset = ()=>{
-		current_page = 1;
-		stop_flag = false;
-		total_bug_groups = {};
-		total_change_groups = {};
-	};
-
 	$copy_export_data_btn.click(function(){
-		TAPD_HELPER.downloadTable($export_data, '工单统计' + TAPD_HELPER.formatDate(new Date(), 'Ymd')+'.xlsx');
+		TAPD_HELPER_BASE.downloadTable($export_data, '工单统计' + TAPD_HELPER_BASE.formatDate(new Date(), 'Ymd')+'.xlsx');
 	});
 
 	$panel.find(`.${CLASS_PREFIX}-panel-close-btn`).click(() => {
 		stop();
 		$panel && $panel.hide();
 	});
+
+	if(location.hash.indexOf('tapd_helper_autostart') >= 0){
+		location.hash = '';
+		show_panel();
+		start();
+	}
 
 	TAPD_HELPER_CHROME.onMessage(function(request, sender, sendResponse){
 		console.log('content on message', request);
@@ -96,7 +95,7 @@
 				break;
 
 			case 'TAPD_ON_SUPPORT':
-				sendResponse(!!TAPD_HELPER.WORKSPACE_ID && /\/bugtrace\//i.test(location.href));
+				sendResponse(!!TAPD_HELPER_BASE.WORKSPACE_ID && /\/bugtrace\//i.test(location.href));
 				break;
 			default:
 				console.error(request);
@@ -107,7 +106,7 @@
 	$start_btn.click(start);
 
 	$send_to_robot_btn.click(()=>{
-		TAPD_HELPER.sendToWxWorkRobot()
+		TAPD_HELPER_BASE.sendToWxWorkRobot()
 	});
 
 	function start(){
@@ -121,6 +120,7 @@
 			analyze_page();
 		}
 		else if($start_btn.text() === '重新分析'){
+			location.hash = '#tapd_helper_autostart';
 			location.reload();
 		}
 		else {
@@ -130,7 +130,6 @@
 	}
 
 	function stop(){
-		reset();
 		stop_flag = true;
 	}
 
@@ -155,15 +154,15 @@
 					bug.comments.forEach(cmt=>{
 						comment_html_list +=
 							`<td>
-								${TAPD_HELPER.escapeHtml(cmt.author)}（${cmt.time}）：
-								${TAPD_HELPER.escapeHtml(cmt.content)}
+								${TAPD_HELPER_BASE.escapeHtml(cmt.author)}（${cmt.time}）：
+								${TAPD_HELPER_BASE.escapeHtml(cmt.content)}
 							</td>`;
 					});
 					html += comment_html_list;
 					continue;
 				}
 				if(bug[k] !== null){
-					html += `<td>${TAPD_HELPER.escapeHtml(bug[k])}</td>`;
+					html += `<td>${TAPD_HELPER_BASE.escapeHtml(bug[k])}</td>`;
 				}
 			}
 			html += '</tr>';
@@ -185,12 +184,12 @@
 			}
 		});
 		if(!found){
-			let idx = TAPD_HELPER.calcIndex(bug.status);
+			let idx = TAPD_HELPER_BASE.calcIndex(bug.status);
 			let html = `<li data-cnt="1" data-status="${bug.status}"><span class="cnt">1</span><span class="status">${bug.status}</span></li>`;
 			let $last = null;
 			$status_sum.find('li').each(function(){
 				let li_status = $(this).data('status');
-				if(TAPD_HELPER.calcIndex(li_status) >= idx){
+				if(TAPD_HELPER_BASE.calcIndex(li_status) >= idx){
 					return false;
 				}
 				$last = $(this);
@@ -209,7 +208,7 @@
 		ns.forEach(n=>{
 			n = $.trim(n);
 			if(n){
-				tmp.push(`<span class="n">${TAPD_HELPER.escapeHtml(n)}</span>`);
+				tmp.push(`<span class="n">${TAPD_HELPER_BASE.escapeHtml(n)}</span>`);
 			}
 		});
 		return tmp.join('');
@@ -234,10 +233,10 @@
 		let offset = (new Date().getTime()) -  Date.parse(last_status_time);
 		let found = false;
 		let html = `<tr data-offset="${offset}">
-						<td><a href="${bug.link}" target="_blank" class="ti" title="${TAPD_HELPER.escapeHtml(bug.title)}">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
+						<td><a href="${bug.link}" target="_blank" class="ti" title="${TAPD_HELPER_BASE.escapeHtml(bug.title)}">${TAPD_HELPER_BASE.escapeHtml(bug.title)}</a></td>
 						<td>${name_list(bug.owner)}</td>
 						<td class="nowrap">${bug.status}</td>
-						<td class="nowrap">${TAPD_HELPER.prettyTimeRange(offset)}</td>
+						<td class="nowrap">${TAPD_HELPER_BASE.prettyTimeRange(offset)}</td>
 					</tr>`;
 		$lazy_trans_top.find('tr').each(function(){
 			if($(this).data('offset') < offset){
@@ -266,10 +265,10 @@
 		let offset = (new Date().getTime()) -  Date.parse(create_time);
 		let found = false;
 		let html = `<tr data-offset="${offset}">
-						<td><a href="${bug.link}" title="${TAPD_HELPER.escapeHtml(bug.title)}" target="_blank" class="ti">${TAPD_HELPER.escapeHtml(bug.title)}</a></td>
+						<td><a href="${bug.link}" title="${TAPD_HELPER_BASE.escapeHtml(bug.title)}" target="_blank" class="ti">${TAPD_HELPER_BASE.escapeHtml(bug.title)}</a></td>
 						<td>${name_list(bug.owner)}</td>
 						<td class="nowrap">${bug.status}</td>
-						<td class="nowrap">${TAPD_HELPER.prettyTimeRange(offset)}</td>
+						<td class="nowrap">${TAPD_HELPER_BASE.prettyTimeRange(offset)}</td>
 					</tr>`;
 		$unclosed_top.find('tr').each(function(){
 			if($(this).data('offset') < offset){
@@ -299,8 +298,8 @@
 		$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在分析第 ${current_page} 页数据...`);
 
 		console.info('start analyze page');
-		TAPD_HELPER.cache('bug_list_'+current_page, ()=>{
-			return TAPD_HELPER.getBugList(current_page);
+		TAPD_HELPER_BASE.cache('bug_list_'+current_page, ()=>{
+			return TAPD_HELPER_BASE.getBugList(current_page);
 		}).then(bug_list=>{
 			console.info('bug list got:', bug_list.length);
 			bug_list.forEach(bug=>{
@@ -318,7 +317,7 @@
 				add_data_tbl(bug);
 				let idx = (current_page-1)*SUM_INFO.page_size + (pt-bug_list.length);
 				$pg_tip.html(`[${idx}/${SUM_INFO.total}] 正在获取工单信息：<a href="${bug.link}" target="_blank">${bug.title}</a>`);
-				TAPD_HELPER.getBugChangeListCache(bug.id).then(change_list=>{
+				TAPD_HELPER_BASE.getBugChangeListCache(bug.id).then(change_list=>{
 					total_change_groups[bug.id] = change_list;
 					update_flow_charts();
 					update_sub_charts();
@@ -331,11 +330,11 @@
 		});
 	}
 
-	const show_panel = () => {
+	function show_panel(){
 		let show_flag = !$panel.is(':visible');
 		$panel.show();
 		return show_flag;
-	};
+	}
 
 	const update_sub_charts = ()=>{
 		//24小时完成率
@@ -349,16 +348,16 @@
 			total++;
 			let bug = total_bug_groups[bug_id];
 			let changes = total_change_groups[bug_id];
-			if(TAPD_HELPER.getBugFinAssessTime(bug, changes) <= TAPD_HELPER.ONE_DAY){
+			if(TAPD_HELPER_BASE.getBugFinAssessTime(bug, changes) <= TAPD_HELPER_BASE.ONE_DAY){
 				fin_ass_in_24_count++;
 			}
-			if(TAPD_HELPER.getBugFinAssessTime(bug, changes) <= (TAPD_HELPER.ONE_DAY*2)){
+			if(TAPD_HELPER_BASE.getBugFinAssessTime(bug, changes) <= (TAPD_HELPER_BASE.ONE_DAY*2)){
 				fin_ass_in_48_count++;
 			}
-			if(TAPD_HELPER.getBugFinTime(bug, changes) !== null && TAPD_HELPER.getBugFinTime(bug, changes) <= (TAPD_HELPER.ONE_DAY*5)){
+			if(TAPD_HELPER_BASE.getBugFinTime(bug, changes) !== null && TAPD_HELPER_BASE.getBugFinTime(bug, changes) <= (TAPD_HELPER_BASE.ONE_DAY*5)){
 				fin_in_120_count++;
 			}
-			if(TAPD_HELPER.getBugFinTime(bug, changes) !== null && TAPD_HELPER.getBugFinTime(bug, changes) <= (TAPD_HELPER.ONE_DAY*10)){
+			if(TAPD_HELPER_BASE.getBugFinTime(bug, changes) !== null && TAPD_HELPER_BASE.getBugFinTime(bug, changes) <= (TAPD_HELPER_BASE.ONE_DAY*10)){
 				fin_in_240_count++;
 			}
 		}
@@ -386,7 +385,7 @@
 			let tmp = {};
 			changes.forEach(change=>{
 				if(change.type === '状态' && !tmp[change.date]){ //每个工单，每天只统计最后一次变更的状态
-					date_serials.push(TAPD_HELPER.formatDate(new Date(Date.parse(change.date)), 'm/d'));
+					date_serials.push(TAPD_HELPER_BASE.formatDate(new Date(Date.parse(change.date)), 'm/d'));
 					tmp[change.date] = true;
 					if(!status_groups[change.after]){
 						status_groups[change.after] = {[change.date]:1};

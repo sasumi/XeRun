@@ -41,11 +41,42 @@
 		}
 	};
 
+	const getSetting = ()=>{
+		return new Promise((resolve) => {
+			TAPD_HELPER_CHROME.sendMessageToBackground({type:'getSetting'}, function(setting){
+				resolve(setting);
+			});
+		});
+	};
+
+	const saveSetting = (setting)=>{
+		return new Promise(resolve => {
+			TAPD_HELPER_CHROME.sendMessageToBackground({
+				type: 'saveSetting',
+				data: setting
+			}, setting => {
+				resolve(setting);
+			});
+		});
+	};
+
+	const saveSettingByKey = (key, value)=>{
+		return new Promise(resolve => {
+			getSetting().then(setting => {
+				setting[key] = value;
+				saveSetting(setting).then(resolve);
+			});
+		});
+	};
+
 	window.TAPD_HELPER_CHROME = {
 		getBackgroundPage: getBackgroundPage,
 		sendMessageToContent: sendMessageToContent,
 		getCurrentTabId: getCurrentTabId,
 		onMessage: onMessage,
 		sendMessageToBackground: sendMessageToBackground,
+		getSetting: getSetting,
+		saveSetting: saveSetting,
+		saveSettingByKey: saveSettingByKey,
 	};
 })();
