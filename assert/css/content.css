@@ -1,50 +1,37 @@
 @charset "UTF-8";
 
-.tapd-free-man-panel {width:1100px; z-index:9999; display:block; top:30px; padding:0; font-size:14px; border:none; box-shadow:1px 1px 50px #bbb}
-.tapd-free-man-panel::backdrop {position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0, 0, 0, 0.1);}
-.tapd-free-man-panel-close-btn:before {content:"×"; float:right; font-size:18px; cursor:pointer; color:gray; width:20px; height:20px; line-height:20px;}
-.tapd-free-man-panel-close-btn:before:hover {color:black;}
-.tapd-free-man-panel-title {float:left; font-size:16px; padding:10px;}
-.tapd-free-man-panel-content {padding:20px 20px 0; clear:both; max-height:calc(100vh - 150px); overflow-y:auto; border-bottom:20px solid white;}
+#html-capture-trigger {
+	position:fixed;
+	user-select:none;
+	top:20px;
+	right:20px;
+	border-radius:50%;
+	width:30px;
+	height:30px;
+	background-repeat:no-repeat;
+	background-size:contain;
+	overflow:hidden;
+	cursor:pointer;
+	transition:all 0.1s linear;
+	z-index:99999;
+}
+#html-capture-trigger:hover {
+}
 
-.tapd-free-man-pg-tip {display:block; height:16px; max-width:550px; overflow:hidden;}
-.tapd-free-man-op-wrap {margin-top:5px;}
-.tapd-free-man-result-op-wrap {float:right;}
 
-.tapd-free-man-trigger {margin-left:10px; margin-right:-10px;}
+.html-caption-inspection {
+	outline:2px solid #9e9cf5cc;
+	box-shadow:1px 1px 10px #9e9cf5cc;
+	cursor:default;
+}
 
-.tapd-free-man-flow-chart {margin-top:20px;}
-.tapd-free-man-sub-chart-wrap {display:flex; clear:both; margin:20px 0;}
-.tapd-free-man-sub-chart {flex:1; font-size:14px; padding:0 20px;}
-.tapd-free-man-sub-chart s {text-decoration:none; font-size:18px; font-weight:bold; float:right; margin-top:-4px;}
-.tapd-free-man-sub-chart progress {width:100%; display:block;}
-
-.tapd-free-man-table {clear:both; margin-top:15px; width:100%;}
-.tapd-free-man-table caption {font-size:16px; font-weight:bold; padding:5px 10px;}
-.tapd-free-man-table td{padding:5px 10px;}
-.tapd-free-man-table tr:nth-child(even) {background-color:#f7f7f7;}
-.tapd-free-man-table a {display:block; height:16px; overflow:hidden;}
-.tapd-free-man-table .nowrap {white-space:nowrap}
-.tapd-free-man-table .n {display:inline-block; white-space:nowrap; padding:1px 3px; background-color:#eeeeee69; text-shadow:1px 1px 1px white; border-radius:2px; margin:0 2px 2px 0;}
-.tapd-free-man-table .n:last-child {margin-right:0;}
-
-.tapd-free-man-export-data {max-height:200px; overflow:auto;}
-
-.tapd-free-man-status-sum {margin-top:10px; transition:all 0.1s linear; overflow:hidden;}
-.tapd-free-man-status-sum:hover {background-color:white;}
-.tapd-free-man-status-sum li {float:left; margin-left:10px; border-right:1px solid #ddd; padding-right:10px;}
-.tapd-free-man-status-sum li:last-child {border-right:none;}
-.tapd-free-man-status-sum span {display:block; text-align:center;}
-.tapd-free-man-status-sum .cnt {font-weight:bold; font-size:16px;}
-.tapd-free-man-status-sum .status {}
-
-.tapd-free-man-status-sum li[data-status="待评估"],
-.tapd-free-man-status-sum li[data-status="已核实"],
-.tapd-free-man-status-sum li[data-status="处理中"]{color:darkmagenta}
-.tapd-free-man-status-sum li[data-status="已解决"],
-.tapd-free-man-status-sum li[data-status="待回电"],
-.tapd-free-man-status-sum li[data-status="已验证"]{color:green;}
-.tapd-free-man-status-sum li[data-status="已关闭"]{color:gray;}
-.tapd-free-man-status-sum li[data-status="已拒绝"]{color:orange;}
-.tapd-free-man-status-sum li[data-status="已转需求"]{color:yellowgreen}
-.tapd-free-man-status-sum li[data-status="处理中"]{color:blue}
+#html-capture-preview {position:fixed; z-index:99998; top:50px; width:600px; left:calc((100vw - 600px)/2); padding:20px; box-shadow:3px 4px 40px 4px #b3b3b3ee; background-color:#fff;}
+#html-capture-img-wrap {display:block; margin-bottom:10px; text-align:center;}
+#html-capture-img-wrap img {display:inline-block; max-width:100%;}
+#html-capture-buttons {text-align:center;}
+#html-capture-preview-close {position:absolute; top:0px; right:0px; color:gray; border-radius:50%; cursor:pointer; width:30px; height:30px; text-align:center; line-height:1.2; font-size:28px;}
+#html-capture-preview-close:hover {color:black;}
+#html-capture-preview-download,
+#html-capture-preview-copy {display:inline-block; border-radius:2px; font-size:12px; cursor:pointer; padding:5px 15px; border:1px solid #aaa; margin-left:5px;}
+#html-capture-preview-download:hover,
+#html-capture-preview-copy:hover {background-color:#eee;}

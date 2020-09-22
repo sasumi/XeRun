@@ -1,12 +1,12 @@
 {
   "manifest_version": 2,
-  "name": "TapdFreeMan",
+  "name": "HtmlCapture",
   "version": "1.0",
-  "description": "tapd bug tickets optimize plugin",
+  "description": "Html capture plugin",
   "author": "sasumi",
   "icons": {
-	"48": "icon.png",
-	"128": "icon.png"
+	"48": "assert/img/icon.png",
+	"128": "assert/img/icon.png"
   },
   "homepage_url": "http://blog.yikepi.com",
   "permissions": [
@@ -14,43 +14,30 @@
 	"http://*/",
 	"https://*/"
   ],
-  "options_ui": {
-	"page": "options.html",
-	"chrome_style": true
-  },
   "browser_action": {
-	"default_icon": "icon.png",
+	"default_icon": "assert/img/icon.png",
 	"default_popup": "popup.html"
   },
   "content_scripts": [
 	{
-	  "matches": [
-		"https://www.tapd.cn/*"
-	  ],
+	  "matches": ["<all_urls>"],
 	  "css": [
 		"assert/css/content.css"
 	  ],
 	  "js": [
 		"assert/js/chrome.js",
-		"assert/js/xlsx.core.min.js",
 		"assert/js/jquery-1.8.3.min.js",
-		"assert/js/echarts.min.js",
-		"assert/js/content.base.js",
-		"assert/js/content.run.js"
+		"assert/js/dom-to-image.js",
+		"assert/js/content.js"
 	  ],
 	  "web_accessible_resources": [
-		"assert/img/icon.png"
+		"assert/img/icon.png",
+		"assert/img/move.png"
 	  ],
 	  "run_at": "document_end"
 	}
   ],
-  "background": {
-	"scripts": [
-	  "assert/js/chrome.js",
-	  "assert/js/background.js",
-	  "assert/js/jquery-1.8.3.min.js"
-	]
-  },
   "web_accessible_resources": [
+	"assert/img/icon.png"
   ]
 }
