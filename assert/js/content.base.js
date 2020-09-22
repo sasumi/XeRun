@@ -366,7 +366,7 @@
 	const resolveTextFromHtml = (html)=>{
 		let $tmp = $('<div style="display:none"></div>').html(html);
 		['style', 'script'].forEach(tag => $tmp.find(tag).remove());
-		return $tmp.text();
+		return $.trim($tmp.text());
 	};
 
 	const getBugList = (page) => {

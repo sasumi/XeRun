@@ -20,7 +20,9 @@
 							<ul class="${CLASS_PREFIX}-status-sum" style="display:none"></ul>
 							<div class="${CLASS_PREFIX}-flow-chart" style="display:none; height:200px;"></div>
 							<div class="${CLASS_PREFIX}-sub-chart-wrap" style="display:none;"></div>
-							<div class="${CLASS_PREFIX}-export-data" style="display:none;">
+							<div class="${CLASS_PREFIX}
+							
+							" style="display:none;">
 								<table class="${CLASS_PREFIX}-table">
 									<caption>数据导出预览 </caption>
 									<thead><tr></tr></thead>
