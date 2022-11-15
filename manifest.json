@@ -1,56 +1,38 @@
 {
-  "manifest_version": 2,
-  "name": "TapdFreeMan",
-  "version": "1.0",
-  "description": "tapd bug tickets optimize plugin",
-  "author": "sasumi",
-  "icons": {
-	"48": "icon.png",
-	"128": "icon.png"
-  },
-  "homepage_url": "http://blog.yikepi.com",
-  "permissions": [
-	"chrome://favicon/",
-	"http://*/",
-	"https://*/"
-  ],
-  "options_ui": {
-	"page": "options.html",
-	"chrome_style": true
-  },
-  "browser_action": {
-	"default_icon": "icon.png",
-	"default_popup": "popup.html"
-  },
-  "content_scripts": [
-	{
-	  "matches": [
-		"https://www.tapd.cn/*"
-	  ],
-	  "css": [
-		"assert/css/content.css"
-	  ],
-	  "js": [
-		"assert/js/chrome.js",
-		"assert/js/xlsx.core.min.js",
-		"assert/js/jquery-1.8.3.min.js",
-		"assert/js/echarts.min.js",
-		"assert/js/content.base.js",
-		"assert/js/content.run.js"
-	  ],
-	  "web_accessible_resources": [
-		"assert/img/icon.png"
-	  ],
-	  "run_at": "document_end"
-	}
-  ],
-  "background": {
-	"scripts": [
-	  "assert/js/chrome.js",
-	  "assert/js/background.js",
-	  "assert/js/jquery-1.8.3.min.js"
-	]
-  },
-  "web_accessible_resources": [
-  ]
+	"manifest_version": 3,
+	"name": "XeRun",
+	"version": "1.0",
+	"description": "小鹅通工作助手",
+	"author": "sasumi",
+	"homepage_url": "https://blog.yikepi.com",
+	"action": {
+		"default_title": "小鹅通工作助手，功能请查阅帮助文档",
+		"default_icon": {
+			"16": "icon.png",
+			"24": "icon.png",
+			"32": "icon.png"
+		},
+		"default_popup": "popup/string.html"
+	},
+	"icons": {
+		"16": "icon.png",
+		"32": "icon.png",
+		"48": "icon.png",
+		"128": "icon.png"
+	},
+	"permissions": ["activeTab", "scripting", "tabs", "storage", "clipboardRead", "clipboardWrite"],
+	"background": {
+		"service_worker": "background/background.js"
+	},
+	"web_accessible_resources":[
+		{
+			"resources":["common/common.js", "content/right_arr.png"],
+			"matches":["<all_urls>"]
+		}
+	],
+	"content_scripts": [{
+		"run_at": "document_end",
+		"matches": ["<all_urls>"],
+		"js": ["content/content.js"]
+	}]
 }

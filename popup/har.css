@@ -1,0 +1,67 @@
+@charset "UTF-8";
+
+.drop-file-zone {
+    padding: 2em 0;
+    text-align: center;
+    border: 2px dashed #ccc;
+    position: relative;
+}
+
+.drop-file-zone .tip {
+    color: #bbb;
+    font-size: 1.2em;
+}
+
+.drop-file-zone input[type=file] {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top:0; left:0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.drop-file-zone.dragover {border:2px solid #333;}
+
+.result {
+    margin-top: 1em;
+}
+
+.result dt {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.result ol {
+    counter-reset: result-list;
+}
+
+.result ol li {
+    counter-increment: result-list;
+    padding: 0.5em 0 0.5em 2em;
+    position: relative;
+}
+
+.result ol li:before {
+    --list-size: 1.5em;
+    content: counter(result-list);
+    position: absolute;
+    height: var(--list-size);
+    width: var(--list-size);
+    line-height: var(--list-size);
+    text-align: center;
+    color: white;
+    background-color: #666;
+    border-radius: 100%;
+    left: 0;
+}
+
+.result code {
+    display: block;
+    max-height: 80px;
+    overflow: auto;
+    word-break: break-all;
+}
+
+.result-zone .error {color:red; padding:0.5em 0;}
