@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
 	"manifest_version": 3,
 	"name": "XeRun",
@@ -35,4 +36,48 @@
 		"matches": ["<all_urls>"],
 		"js": ["content/content.js"]
 	}]
+=======
+{
+  "manifest_version": 2,
+  "name": "HtmlCapture",
+  "version": "1.0",
+  "description": "Html capture plugin",
+  "author": "sasumi",
+  "icons": {
+	"48": "assert/img/icon.png",
+	"128": "assert/img/icon.png"
+  },
+  "homepage_url": "http://blog.yikepi.com",
+  "permissions": [
+	"chrome://favicon/",
+	"http://*/",
+	"https://*/"
+  ],
+  "browser_action": {
+	"default_icon": "assert/img/icon.png",
+	"default_popup": "popup.html"
+  },
+  "content_scripts": [
+	{
+	  "matches": ["<all_urls>"],
+	  "css": [
+		"assert/css/content.css"
+	  ],
+	  "js": [
+		"assert/js/chrome.js",
+		"assert/js/jquery-1.8.3.min.js",
+		"assert/js/dom-to-image.js",
+		"assert/js/content.js"
+	  ],
+	  "web_accessible_resources": [
+		"assert/img/icon.png",
+		"assert/img/move.png"
+	  ],
+	  "run_at": "document_end"
+	}
+  ],
+  "web_accessible_resources": [
+	"assert/img/icon.png"
+  ]
+>>>>>>> 347dc3faf75bd708ebc30027ad03f53a122faab0
 }

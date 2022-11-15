@@ -1,0 +1,22 @@
+@charset "UTF-8";
+@import "reset.css";
+@import "form.css";
+@import "global.css";
+@import "com.css";
+
+#page {padding:10px; width:400px;}
+#toast {position:absolute; top:0; left:0; width:100%; padding:8px 0; text-align:center;}
+#toast.success {background-color:#3d80ad82;}
+#toast.error {background-color:rgba(173, 75, 73, 0.51);}
+#toast.loading {background-color:rgba(61, 173, 70, 0.51);}
+
+.start-wrap {text-align:center; padding:20px 0;}
+#error {display:block; color:red; padding:1em 0;}
+
+.setting-link {float:right;}
+
+.about-info {padding:20px 20px 20px 60px;}
+.about-info h2 {font-size:16px;}
+.about-info .logo {position:absolute; margin-left:-50px; width:40px; height:40px; background:url("../img/icon.png") no-repeat; background-size:contain}
+.about-info .metas {overflow:hidden; padding:0.5em 0; color:gray;}
+.about-info .metas li {float:left; margin-right:1em;}

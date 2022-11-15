@@ -1,0 +1,37 @@
+@charset "UTF-8";
+
+#html-capture-trigger {
+	position:fixed;
+	user-select:none;
+	top:20px;
+	right:20px;
+	border-radius:50%;
+	width:30px;
+	height:30px;
+	background-repeat:no-repeat;
+	background-size:contain;
+	overflow:hidden;
+	cursor:pointer;
+	transition:all 0.1s linear;
+	z-index:99999;
+}
+#html-capture-trigger:hover {
+}
+
+
+.html-caption-inspection {
+	outline:2px solid #9e9cf5cc;
+	box-shadow:1px 1px 10px #9e9cf5cc;
+	cursor:default;
+}
+
+#html-capture-preview {position:fixed; z-index:99998; top:50px; width:600px; left:calc((100vw - 600px)/2); padding:20px; box-shadow:3px 4px 40px 4px #b3b3b3ee; background-color:#fff;}
+#html-capture-img-wrap {display:block; margin-bottom:10px; text-align:center;}
+#html-capture-img-wrap img {display:inline-block; max-width:100%;}
+#html-capture-buttons {text-align:center;}
+#html-capture-preview-close {position:absolute; top:0px; right:0px; color:gray; border-radius:50%; cursor:pointer; width:30px; height:30px; text-align:center; line-height:1.2; font-size:28px;}
+#html-capture-preview-close:hover {color:black;}
+#html-capture-preview-download,
+#html-capture-preview-copy {display:inline-block; border-radius:2px; font-size:12px; cursor:pointer; padding:5px 15px; border:1px solid #aaa; margin-left:5px;}
+#html-capture-preview-download:hover,
+#html-capture-preview-copy:hover {background-color:#eee;}
