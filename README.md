@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 小鹅通工作小助手
 1、该软件为免费使用软件，不对使用软件过程中出现任何问题负责，请自重。
 2、若使用过程有任何建议或意见，请联系作者<a href="mailto:cnsasumi@outlook.com">cnsasumi@outlook.com</a>。
@@ -25,8 +24,6 @@ Microsoft Edge 浏览器核心使用 Chromium，因此在操作上与Chrome浏�
 
 ## 二、进阶使用
 为更方便使用应用弹窗，建议设置快捷键打开该扩展应用。
-=======
-# HTML截屏助手
+
 1、该软件为免费使用软件，不对使用软件过程中出现任何问题负责，请自重。
 2、若使用过程有任何建议或意见，请联系作者<a href="mailto:cnsasumi@outlook.com">cnsasumi@outlook.com</a>。
->>>>>>> 347dc3faf75bd708ebc30027ad03f53a122faab0

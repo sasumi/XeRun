@@ -15,7 +15,7 @@ const markdown2Html = txt => {
     let maskTxt = txt.replace(/<font\s*color="(.*?)"\s*\>/ig, '__COLOR_START_$1__')
         .replace(/<\/font>/ig, '__COLOR_END__')
         .replace(/\*\*(.*?)\*\*/g, "__STRONG_START__$1__STRONG_END__")
-        .replace(/\n>\s*([^\n]+)\n/mg, "\n__QUOTE_START__$1__QUOTE_END__")
+        .replace(/\n>\s+([^\n]+)/mg, "\n__QUOTE_START__$1__QUOTE_END__")
         .replace(/\n######\s(.*?)\n/mg, "\n__H6_START__$1__H6_END__")
         .replace(/\n#####\s(.*?)\n/mg, "\n__H5_START__$1__H5_END__")
         .replace(/\n####\s(.*?)\n/mg, "\n__H4_START__$1__H4_END__")
@@ -36,6 +36,7 @@ const markdown2Html = txt => {
         .replace(/__STRONG_END__/g, '</strong>')
         .replace(/__QUOTE_END__<br\/>__QUOTE_START__/g, '<br/>')
         .replace(/__QUOTE_START__/g, '<quote>')
+        .replace(/__QUOTE_END__<br\/>/ig,'</quote>')
         .replace(/__QUOTE_END__/g,'</quote>');
 
         console.log('txt', JSON.stringify(txt));

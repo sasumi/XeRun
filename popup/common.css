@@ -67,7 +67,7 @@ input:focus, textarea:focus {outline:1px solid gray;}
 .option-group-collapse dt:after {border-color:transparent;border-left-color:gray; margin:0.2em -3px 0px 0;}
 .option-group-collapse dd {display:none;}
 
-.nav {overflow: hidden; padding:0.5em 1em; background-color: #eee;}
+.nav {overflow: hidden;padding:0.5em 1em;background-color: #eee;border-bottom: 1px solid #ddd;}
 .nav li {float:left; }
 .nav li::after {content:"|"; color:gray; padding:0 0.5em;}
 .nav li:last-child:after {content:""}
