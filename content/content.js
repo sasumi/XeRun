@@ -9,11 +9,13 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	const {patchCss,
 			hide,
 			renderTextResult,
+			parseQueryString,
 			COMMON_OPTIONS,
 			inCommonOption,
 			closest,
 			getCommonOptionSetting,
 			getChromeStorageSync,
+			createHtml,
 			domContained,
 			layDomInView} = await import(src);
 
@@ -250,22 +252,28 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 	}
 
+	//登录H5链接
 	if(location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0){
 		let jsonStr = document.body.innerText;
 		let obj = JSON.parse(jsonStr);
+		let search = parseQueryString(location.search);
+		let redirect_url = search?.redirect_url;
 		if(obj.code === 3){
-			alert('请先登录O端客服工具');
+			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
 		if(obj.code === 0 && obj.data.howtodo){
 			let tm = 5000;
 			let timer = null;
-			let html = `<hr/>1.请打开开发者工具(F12)，切换到设备模拟模式<br/>
-						2.访问链接 <a href="${obj.data.howtodo.onekeycosplay}">${obj.data.howtodo.onekeycosplay}</a> <input type="button" value="停止(${(tm/1000).toFixed(0)}s)" id="xe-run-countdown">`;
+			let html = `<hr/>
+						1.请打开开发者工具(F12)，切换到设备模拟模式<br/>
+						2.访问链接 <a href="${obj.data.howtodo.onekeycosplay}">${obj.data.howtodo.onekeycosplay}</a> <input type="button" value="停止(${(tm/1000).toFixed(0)}s)" id="xe-run-countdown">
+			`;
 			let div = document.createElement('div');
 			div.innerHTML = html;
 			document.body.appendChild(div);
 
+			let iframe = document.getElementById('auth_iframe');
 			let cdBtn = document.getElementById('xe-run-countdown');
 			cdBtn.addEventListener('click', e=>{
 				if(timer){
@@ -278,18 +286,26 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 					cdBtn.value = `停止(${(tm/1000).toFixed(2)}s)`;
 					timer = setTimeout(()=>{countDown(tm)}, 100);
 				} else {
-					document.location.href = obj.data.howtodo.onekeycosplay;
+					let cosplayUrl = obj.data.howtodo.onekeycosplay;
+					if(redirect_url){
+						chrome.runtime.sendMessage({action:'openTabOnce', url:cosplayUrl}, function(response){
+							document.location.href = redirect_url;
+						});
+					} else {
+						document.location.href = cosplayUrl;
+					}
 				}
 			};
 			countDown(tm);
 		}
 	}
 
+	//登录B端管理台
 	if(location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0){
 		let jsonStr = document.body.innerText;
 		let obj = JSON.parse(jsonStr);
 		if(obj.code === 3){
-			alert('请先登录O端客服工具');
+			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
 		if(obj.code === 0 && obj.data.redirect_to){

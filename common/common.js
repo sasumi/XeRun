@@ -156,6 +156,26 @@ export const assertUrl = (id) => {
     return chrome.runtime.getURL('assets/' + id);
 };
 
+export const parseQueryString = (queryString)=>{
+    if(queryString[0] === '?'){
+        queryString = queryString.substring(1);
+    }
+    let segs = queryString.split('&');
+    let ret = {};
+    segs.forEach(seg=>{
+        if(seg.indexOf('=') <= 0){
+            ret[decodeURIComponent(seg)] = null;
+        }
+        else {
+            let [name, value] = seg.split('=');
+            name = decodeURIComponent(name);
+            value = decodeURIComponent(value);
+            ret[name] = value;
+        }
+    });
+    return ret;
+}
+
 export const getPasteContent = () => {
     let currentActiveEl = document.activeElement;
     let input = document.createElement('input');
@@ -198,6 +218,23 @@ export const onChromeStorageSyncChange = (key, payload) => {
             payload(changes.newValue, changes.oldValue);
         }
     });
+};
+
+export const createHtml = html => {
+    let div = document.createElement('div');
+    div.innerHTML = html;
+    let ns = [];
+    div.childNodes.forEach(node=>{
+        ns.push(node);
+        document.body.appendChild(node);
+    });
+    if(!ns.length){
+        return null;
+    }
+    if(ns.length === 1){
+        return ns[0];
+    }
+    return ns;
 };
 
 export const setChromeStorageSync = (key, data) => {
@@ -311,18 +348,24 @@ export const decodeBase64 = (txt) => {
 };
 
 export const resolveUrls = (txt) => {
-    let links = [];
+    let urls = [];
     let tmp = {};
     txt = ' ' + txt + ' ';
     txt.replace(/(https|http)(:\/\/.*?)[\s\n]/ig, ms => {
         ms = ms.trim();
         if (!tmp[ms]) {
-            links.push(ms.trim());
+            urls.push(ms.trim());
             tmp[ms] = true;
         }
     });
-    return links;
+    return urls;
 }
+
+export const isH5Link = link=>{
+    let a = document.createElement('a');
+    a.href = link;
+    return a.host.indexOf('.h5.xiaoeknow.com') > 0;
+};
 
 export const buildAppAdminEntry = appId => {
     let html = `<form action="https://super.xiaoe-tech.com/new/saveLoginLog" style="display:inline-block" method="post" target="_blank">
@@ -335,8 +378,8 @@ export const buildAppAdminEntry = appId => {
     return html;
 };
 
-export const buildUserH5Entry = (appId, userId) => {
-    let html = `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token" style="display:inline-block" method="post" target="_blank">
+export const buildUserH5Entry = (appId, userId, h5Link='') => {
+    let html = `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?redirect_url=${encodeURIComponent(h5Link)}" style="display:inline-block" method="post" target="_blank">
     <input type="hidden" name="app_id" value="${appId}"/>
     <input type="hidden" name="user_id" value="${userId}"/>
     <input type="submit" value="登录用户H5端" class="btn btn-danger"/>
@@ -430,7 +473,13 @@ export const renderTextResult = (txt, hieNoResult = false) => {
     }
 
     if (appId && userId) {
-        opHtml += buildUserH5Entry(appId, userId);
+        if(links.length){
+            links.forEach(link=>{
+                opHtml += buildUserH5Entry(appId, userId, isH5Link(link) ? link: '');
+            });
+        } else {
+            opHtml += buildUserH5Entry(appId, userId);
+        }
     }
     if (userId) {
         infoHtml += `<li><label>用户ID：</label><span>${userId}</span></li>`;
