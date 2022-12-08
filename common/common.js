@@ -26,7 +26,7 @@ export const escapeHtml = str => {
 		.replace(/'/g, "&#039;")
 		.replace(/\n/g, '<br/>')
 		.replace(/\s/g, '&nbsp;')
-		.replace(/\t/g, '&nbsp;&nbsp;');
+		.replace(/\t/g, '&nbsp;'.repeat(2));
 }
 
 /**
@@ -156,26 +156,6 @@ export const assertUrl = (id) => {
     return chrome.runtime.getURL('assets/' + id);
 };
 
-export const parseQueryString = (queryString)=>{
-    if(queryString[0] === '?'){
-        queryString = queryString.substring(1);
-    }
-    let segs = queryString.split('&');
-    let ret = {};
-    segs.forEach(seg=>{
-        if(seg.indexOf('=') <= 0){
-            ret[decodeURIComponent(seg)] = null;
-        }
-        else {
-            let [name, value] = seg.split('=');
-            name = decodeURIComponent(name);
-            value = decodeURIComponent(value);
-            ret[name] = value;
-        }
-    });
-    return ret;
-}
-
 export const getPasteContent = () => {
     let currentActiveEl = document.activeElement;
     let input = document.createElement('input');
@@ -189,14 +169,15 @@ export const getPasteContent = () => {
 }
 
 export const layDomInView = (dom, dimension) => {
-    console.log('layDom in view');
     let width = dom.offsetWidth;
     let height = dom.offsetHeight;
+    let scrollLeft = document.body.scrollLeft;
+    let scrollTop = document.body.scrollTop;
     let viewHeight = document.body.offsetHeight || document.body.parentNode.clientHeight;
     let viewWidth = document.body.offsetWidth || document.body.parentNode.clientWidth;
 
-    let left = Math.min(viewWidth - width, dimension.left) + document.body.scrollLeft;
-    let top = Math.min(viewHeight - height, dimension.top) + document.body.scrollTop;
+    let left = Math.min(scrollLeft + viewWidth - width, dimension.left);
+    let top = Math.min(scrollTop + viewHeight - height, dimension.top);
     dom.style.top = top + 'px';
     dom.style.left = left + 'px';
 }
@@ -220,21 +201,10 @@ export const onChromeStorageSyncChange = (key, payload) => {
     });
 };
 
-export const createHtml = html => {
-    let div = document.createElement('div');
-    div.innerHTML = html;
-    let ns = [];
-    div.childNodes.forEach(node=>{
-        ns.push(node);
-        document.body.appendChild(node);
-    });
-    if(!ns.length){
-        return null;
-    }
-    if(ns.length === 1){
-        return ns[0];
-    }
-    return ns;
+export const createHtml = (html, parent = null) => {
+    let fragment = document.createRange().createContextualFragment(html);
+    parent = parent || document.body;
+    parent.appendChild(fragment);
 };
 
 export const setChromeStorageSync = (key, data) => {
@@ -367,8 +337,8 @@ export const isH5Link = link=>{
     return a.host.indexOf('.h5.xiaoeknow.com') > 0;
 };
 
-export const buildAppAdminEntry = appId => {
-    let html = `<form action="https://super.xiaoe-tech.com/new/saveLoginLog" style="display:inline-block" method="post" target="_blank">
+export const buildAppAdminEntry = (appId, jump = '') => {
+    let html = `<form action="https://super.xiaoe-tech.com/new/saveLoginLog?jump=${encodeURIComponent(jump)}" style="display:inline-block" method="post" target="_blank">
     <input type="hidden" name="app_id" value="${appId}"/>
     <input type="hidden" name="context_reason" value="1"/>
     <input type="hidden" name="context_resource_id" value="0"/>
@@ -469,7 +439,7 @@ export const renderTextResult = (txt, hieNoResult = false) => {
         infoHtml += `<li><label>店铺ID：</label><span>${appId}</span></li>`;
         infoHtml += `<li><label>店铺PC链接：</label><span>${buildAppPCEntry(appId)}</span></li>`;
         infoHtml += `<li><label>店铺H5链接：</label><span>${buildAppH5Entry(appId)}</span></li>`;
-        opHtml += buildAppAdminEntry(appId);
+        opHtml += buildAppAdminEntry(appId, 'https://admin.xiaoe-tech.com/');
     }
 
     if (appId && userId) {
