@@ -10,13 +10,16 @@
 li {list-style:none;}
 html {min-width:400px; font-size:var(--font-size); font-family: var(--font-family); color:var(--color); background-color:var(--back-color)}
 body {padding:0;}
-h1, h1>a:first-child {background-color:#000; color:white; text-decoration: none;; font-weight: normal; font-size:1.2rem; padding:0.5em; margin:0;}
+.logo {background-color: #000; font-weight: normal; font-size:1.2rem;}
+.logo a {color:white; text-decoration: none; display: block;; padding:0.5em 0.5em 0.5em 0; margin:0;}
+.logo a:before {content:""; display:inline-block; background:url("../icon.png"); width:20px; height:20px; margin:0  7px 5px 7px; background-size: contain; vertical-align: middle;}
 h1 a.more {font-size:1rem; color:white; float:right;}
 h2 {font-size:1.2rem; padding:0.5em; margin:0;}
 a, .link {color:#1495db; text-decoration: none; cursor: pointer;}
 input,textarea {font-family: var(--font-family); font-size:var(--font-size);}
 input:focus, textarea:focus {outline:1px solid gray;}
 .content {padding:1em; max-height:480px; overflow:auto;}
+
 
 .btn {
     display: inline-block;
@@ -55,7 +58,7 @@ input:focus, textarea:focus {outline:1px solid gray;}
 .checkbox-checked:before {float:right;}
 .checkbox-disabled {opacity: 0.5; cursor: default;}
 
-.option-link {float:right;margin: -2.5em 1em 0 0;color:white;opacity: 0.5;}
+.option-link {float:right;margin:-30px 1em 0 0;color:white;opacity: 0.5;}
 .option-link:before {content:""; display:inline-block; width:16px; height:16px; margin-right:0.2em; vertical-align:middle; background-image: url("option.svg"); background-size:contain}
 .option-link:hover {opacity: 1;}
 
