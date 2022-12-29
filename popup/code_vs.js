@@ -1,11 +1,3 @@
-import {
-	escapeHtml,
-	fireEvent,
-	hide,
-	listenEvent,
-	show
-} from "../common/common.js";
-
 let rotateBtn = document.querySelector('#rotate-btn');
 let rotateMap = ['left', 'top', 'bottom'];
 const INDENT_COLOR_MAP = {
@@ -86,10 +78,6 @@ txtDom.addEventListener('input', e=>{
 
 let txt = txtDom.value;
 previewDom.innerHTML = visualizationCode(txt);
-
-exportBtn.addEventListener('click', e=>{
-	
-});
 
 rotateBtn.addEventListener('click', e=>{
 	let dir = previewDom.getAttribute('data-rotate');

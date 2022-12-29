@@ -1,5 +1,4 @@
-import {batchAddListener, buildCookieCmd} from "./../common/common.js";
-
+const {buildCookieCmd, batchAddListener} = import("../common/function.js");
 let dropZoneDom = document.querySelector('.drop-file-zone');
 let dropFile = document.querySelector('.drop-file-zone input[type=file]');
 let dropFileTip = document.querySelector('.drop-file-zone .tip');

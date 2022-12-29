@@ -20,19 +20,38 @@
 		"48": "icon.png",
 		"128": "icon.png"
 	},
-	"permissions": ["activeTab", "scripting", "tabs", "storage", "clipboardRead", "clipboardWrite"],
+	"permissions": [
+		"activeTab",
+		"scripting",
+		"tabs",
+		"storage",
+		"clipboardRead",
+		"clipboardWrite"
+	],
 	"background": {
 		"service_worker": "background/background.js"
 	},
-	"web_accessible_resources":[
+	"web_accessible_resources": [
 		{
-			"resources":["common/common.js", "content/right_arr.png"],
-			"matches":["<all_urls>"]
+			"resources": [
+				"common/function.js",
+				"common/common.js",
+				"content/right_arr.png"
+			],
+			"matches": [
+				"<all_urls>"
+			]
 		}
 	],
-	"content_scripts": [{
-		"run_at": "document_end",
-		"matches": ["<all_urls>"],
-		"js": ["content/content.js"]
-	}]
+	"content_scripts": [
+		{
+			"run_at": "document_end",
+			"matches": [
+				"<all_urls>"
+			],
+			"js": [
+				"content/content.js"
+			]
+		}
+	]
 }

@@ -10,7 +10,7 @@ const openTabOnce = (url, onComplete)=>{
                 setTimeout(()=>{
                     chrome.tabs.remove(tab.id);
                     onComplete();
-                }, 1000);
+                }, 2000);
             }
         });
     });

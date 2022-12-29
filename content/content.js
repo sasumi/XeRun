@@ -1,25 +1,33 @@
 const HOST_ATTR_KEY = 'data-host';
-const STYLE_SWITCH = 'STYLE_SWITCH';
-const SUPPER_JUMP_KEY = 'SUPER_JUMP_URL';
+
+/**
+ * localStorage 中存储跳转的数据，格式如： {type:'AppAdmin'|'UserH5', appId: '', userId:'', url: ''}
+ * @type {string}
+ */
+const SUPER_JUMP_KEY = 'SUPER_JUMP_URL';
 
 //patch host to html
 document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 (async () => {
-	const src = chrome.runtime.getURL('common/common.js');
 	const {
-		patchCss,
-		hide,
 		renderTextResult,
 		COMMON_OPTIONS,
 		inCommonOption,
-		closest,
 		getCommonOptionSetting,
 		getChromeStorageSync,
+		buildUserH5Entry,
+		buildAppAdminEntry
+	} = await import(chrome.runtime.getURL('common/common.js'));
+	const {
+		patchCss,
+		hide,
+		closest,
+		decodeBase64,
 		createHtml,
 		domContained,
 		layDomInView
-	} = await import(src);
+	} = await import(chrome.runtime.getURL('common/function.js'));
 
 	const CSS_MAP = {
 		'coding.showFullContent': `
@@ -55,9 +63,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			}`
 	};
 
-	patchCss(`
-	html {filter:none !important;}
-	`);
+	patchCss(`html {filter:none !important;}`);
 
 	const toggleCss = (id, stateOn) => {
 		if(!CSS_MAP[id]){
@@ -134,7 +140,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	};
 
 	let entryDom = null;
-	const toggleQuickNavEntry = (trunOn) => {
+	const toggleQuickNavEntry = (turnOn) => {
 		if(!entryDom){
 			entryDom = document.createElement('div');
 			entryDom.style.display = 'none';
@@ -148,7 +154,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 				navToNext(false);
 			});
 		}
-		if(trunOn && checkNavFit()){
+		if(turnOn && checkNavFit()){
 			entryDom.style.display = '';
 		}else{
 			hideQuickNavEntry();
@@ -196,7 +202,8 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			.xe-run-panel .info-list li {list-style:none; margin:0; padding:0;}
 			.xe-run-panel .btn {display: inline-block;height: 32px;line-height: 1;box-sizing: border-box;font-size: var(--font-size);vertical-align: middle;padding: 0.5em 1em;border: 1px solid #aaa;background-color: #eee;box-shadow: 1px 1px 5px #ccc;margin: 0.2em;cursor: pointer;text-decoration: none;color:var(--color);}
 			.xe-run-panel .btn:hover {background-color: #fff;}
-			.xe-run-panel .btn-danger, .btn-danger:hover{background-color:#ffd7b8; border-color:#ff9c4f; color:#ff7204;}
+			.xe-run-panel .btn-danger,
+			.xe-run-panel .btn-danger:hover{background-color:#ffd7b8; border-color:#ff9c4f; color:#ff7204;}
 			.xe-run-panel .btn-danger:hover {background-color: #fff;}
 			#xe-run-panel-close {position:absolute; color:gray; cursor:pointer; top:0; right:0; z-index:1; width:30px; height:30px; box-sizing:border-box; font-size:18px;  overflow:hidden; text-align:center; }
 			#xe-run-panel-close:hover {color:black;}
@@ -259,7 +266,6 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 							}
 						});
 					}
-					console.log('show panel');
 					panel.innerHTML = html + '<span id="xe-run-panel-close" title="关闭(ESC)">&times;</span>';
 					panel.style.left = e.clientX + 10 + 'px';
 					panel.style.top = e.clientY + 10 + 'px';
@@ -279,13 +285,16 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	if(location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0){
 		let jsonStr = document.body.innerText;
 		let obj = JSON.parse(jsonStr);
-		let jump = new URLSearchParams(location.search).get('jump');
+		let search = new URLSearchParams(location.search);
+		let jumpParam = search.get('jumpParam');
+		debugger;
 		if(obj.code === 3){
-			jump && localStorage.setItem(SUPPER_JUMP_KEY, jump);
+			jumpParam && localStorage.setItem(SUPER_JUMP_KEY, jumpParam);
 			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
 		if(obj.code === 0 && obj.data.howtodo){
+			localStorage.removeItem(SUPER_JUMP_KEY);
 			let tm = 5000;
 			let timer = null;
 			let html = `<hr/>
@@ -312,12 +321,15 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 					}, 100);
 				}else{
 					let cosplayUrl = obj.data.howtodo.onekeycosplay;
-					if(jump){
+					if(jumpParam){
+						let jumpData = JSON.parse(decodeBase64(jumpParam));
+						//先登录管理台，再在当前tab打开指定连接
 						chrome.runtime.sendMessage({
 							action: 'openTabOnce',
 							url: cosplayUrl
 						}, function(response){
-							document.location.href = jump;
+							location.href = jumpData.url;
+							console.log(response);
 						});
 					}else{
 						document.location.href = cosplayUrl;
@@ -332,9 +344,11 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	if(location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0){
 		let jsonStr = document.body.innerText;
 		let obj = JSON.parse(jsonStr);
-		let jump = new URLSearchParams(location.search).get('jump');
+		let search = new URLSearchParams(location.search);
+		debugger;
+		let jumpParam = search.get('jumpParam');
 		if(obj.code === 3){
-			jump && localStorage.setItem(SUPPER_JUMP_KEY, jump);
+			jumpParam && localStorage.setItem(SUPER_JUMP_KEY, jumpParam);
 			createHtml(`
 				<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>
 				<center><a href="https://o-oauth.xiaoe-tech.com/login_page">立即登录</a></center>
@@ -343,19 +357,41 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 				location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 			}, 500);
 		}
-		if(obj.code === 0 && obj.data.redirect_to){
-			location.href = obj.data.redirect_to || jump;
+		if(obj.code === 0){
+			let jumpData = JSON.parse(decodeBase64(jumpParam));
+			//先登录管理台，再在当前tab打开指定连接
+			chrome.runtime.sendMessage({
+				action: 'openTabOnce',
+				url: obj.data.redirect_to
+			}, function(response){
+				location.href = jumpData.url;
+			});
 		}
 	}
 
 	//内部管理系统首页
 	if(location.href === 'https://super.xiaoe-tech.com/new'){
-		let jump = localStorage.getItem(SUPPER_JUMP_KEY);
-		if(jump){
-			localStorage.removeItem(SUPPER_JUMP_KEY);
+		let jumpParam = localStorage.getItem(SUPER_JUMP_KEY);
+		if(jumpParam){
 			//后续补充patch
 			setTimeout(() => {
-				location.href = jump;
+				debugger;
+				let jumpData = JSON.parse(decodeBase64(jumpParam));
+				switch(jumpData.type){
+					case 'AppAdmin':
+						let appAdminForm = createHtml(buildAppAdminEntry(jumpData.appId, '跳转中', jumpData.url));
+						appAdminForm.removeAttribute('target');
+						appAdminForm.submit();
+						return;
+
+					case 'UserH5':
+						let H5Form = createHtml(buildUserH5Entry(jumpData.appId, jumpData.userId, jumpData.url));
+						H5Form.removeAttribute('target');
+						H5Form.submit();
+						return;
+					default:
+						throw "Type Error";
+				}
 			}, 1000);
 		}
 	}

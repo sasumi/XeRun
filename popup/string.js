@@ -19,7 +19,7 @@ textDom.addEventListener('input', e => {
     let txt = textDom.value;
     resultDom.innerHTML = renderTextResult(txt);
     if (!inputFromStorage) {
-        setChromeStorageSync(storageKey, txt);
+        setChromeStorageSync(storageKey, txt).then(()=>{});
     } else {
         inputFromStorage = false;
     }

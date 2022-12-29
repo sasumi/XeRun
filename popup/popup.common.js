@@ -6,6 +6,5 @@
             nav.parentNode.classList.add('active');
         }
     });
-
     document.querySelector('.logo a').href = document.location.href;
 })();
