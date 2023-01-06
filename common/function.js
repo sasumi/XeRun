@@ -1,7 +1,7 @@
 export const patchCss = (cssStr, id = null) => {
 	let style = document.createElement('style');
 	style.appendChild(document.createTextNode(cssStr));
-	if(id){
+	if (id) {
 		style.id = id;
 	}
 	style.type = "text/css";
@@ -36,15 +36,15 @@ export const unescapeHtml = (str) => {
 };
 
 export const hide = dom => {
-	if(dom){
+	if (dom) {
 		dom.style.display = 'none';
 	}
 }
 
 export const closest = (dom, selector) => {
 	let curDom = dom;
-	while(curDom = curDom.parentNode){
-		if(curDom.matches(selector)){
+	while (curDom = curDom.parentNode) {
+		if (curDom.matches(selector)) {
 			return curDom;
 		}
 	}
@@ -59,15 +59,14 @@ export const closest = (dom, selector) => {
  * @returns {boolean}
  */
 export const domContained = (contains, child, includeEqual = false) => {
-	if(typeof contains === 'string'){
+	if (typeof contains === 'string') {
 		contains = document.querySelectorAll(contains);
-	}else if(Array.isArray(contains)){
-	}else if(typeof contains === 'object'){
+	} else if (Array.isArray(contains)) {} else if (typeof contains === 'object') {
 		contains = [contains];
 	}
-	for(let i = 0; i < contains.length; i++){
-		if((includeEqual ? contains[i] === child : false) ||
-			contains[i].compareDocumentPosition(child) & 16){
+	for (let i = 0; i < contains.length; i++) {
+		if ((includeEqual ? contains[i] === child : false) ||
+			contains[i].compareDocumentPosition(child) & 16) {
 			return true;
 		}
 	}
@@ -101,11 +100,11 @@ export const createHtml = (html, parent = null) => {
 	parent = parent || document.body;
 	let len = fragment.childNodes.length;
 	parent.appendChild(fragment);
-	if(len === 1){
+	if (len === 1) {
 		return parent.childNodes[parent.childNodes.length - 1];
 	}
 	let ret = [];
-	for(let i = 0; i < len; i++){
+	for (let i = 0; i < len; i++) {
 		ret.push(parent.childNodes[parent.childNodes.length - len + i]);
 	}
 	return ret;
@@ -113,12 +112,12 @@ export const createHtml = (html, parent = null) => {
 
 
 //将字符串转unicode编码
-export const str2Unicode = function(str){
+export const str2Unicode = (str) => {
 	let unid = '\\u';
-	for(let i = 0, len = str.length; i < len; i++){
-		if(i < len - 1){
+	for (let i = 0, len = str.length; i < len; i++) {
+		if (i < len - 1) {
 			unid += str.charCodeAt(i).toString(16) + '\\u';
-		}else if(i === len - 1){
+		} else if (i === len - 1) {
 			unid += str.charCodeAt(i).toString(16);
 		}
 	}
@@ -135,8 +134,8 @@ export const buildCookieCmd = cookies => {
 };
 
 let events = {};
-export const fireEvent = function(ev){
-	if(events[ev]){
+export const fireEvent = function (ev) {
+	if (events[ev]) {
 		let args = Array.from(arguments).slice(1);
 		events[ev].forEach(payload => {
 			payload.apply(null, args);
@@ -145,7 +144,7 @@ export const fireEvent = function(ev){
 };
 
 export const listenEvent = (ev, payload) => {
-	if(!events[ev]){
+	if (!events[ev]) {
 		events[ev] = [];
 	}
 	events[ev].push(payload);
@@ -153,51 +152,51 @@ export const listenEvent = (ev, payload) => {
 
 export const batchAddListener = (dom, events, payload) => {
 	events.forEach(event => {
-		if(event === 'enter'){
+		if (event === 'enter') {
 			dom.addEventListener('keyup', e => {
-				if(e.key === 'Enter'){
+				if (e.key === 'Enter') {
 					payload(e);
 				}
 			});
-		}else if(event === 'space'){
+		} else if (event === 'space') {
 			dom.addEventListener('keyup', e => {
-				if(e.code === 'Space'){
+				if (e.code === 'Space') {
 					payload(e);
 				}
 			});
-		}else{
+		} else {
 			dom.addEventListener(event, payload);
 		}
 	});
 }
 
 export const encodeBase64 = (txt) => {
-	try{
+	try {
 		let d = btoa(txt);
 		let str = encodeURI(d);
 		return str && str !== txt ? str : null;
-	}catch(e){
+	} catch (e) {
 		console.error('encode base64 fail');
 	}
 	return null;
 };
 
 export const decodeBase64 = (txt) => {
-	try{
+	try {
 		let d = atob(txt);
 		let str = decodeURI(d);
 		return str && str !== txt ? str : null;
-	}catch(e){
+	} catch (e) {
 		console.log('decode base64 fail');
 	}
 	return null;
 };
 
 export const cutTxt = (str, count) => {
-	if(!count){
+	if (!count) {
 		return str;
 	}
-	if(str.length > count){
+	if (str.length > count) {
 		return str.substring(0, count) + '...';
 	}
 	return str;
@@ -205,13 +204,27 @@ export const cutTxt = (str, count) => {
 
 
 //将unicode编码转字符串
-export const unicode2str = function(unicode){
+export const unicode2str = (unicode) => {
 	let result = [];
 	let strArr = unicode.split('\\u');
-	for(let i = 0, len = strArr.length; i < len; i++){
-		if(strArr[i]){
+	for (let i = 0, len = strArr.length; i < len; i++) {
+		if (strArr[i]) {
 			result.push(String.fromCharCode(parseInt(strArr[i], 16)))
 		}
 	}
 	return result.join('');
+}
+
+export const jumpTo = (url) => {
+	let currentUrl = new URL(location.href);
+	location.href = url;
+	let targetUrl = new URL(url);
+	if (targetUrl.protocol != currentUrl.protocol ||
+		targetUrl.host != currentUrl.host ||
+		targetUrl.pathname != currentUrl.pathname ||
+		targetUrl.search != currentUrl.search) {
+		return;
+	}
+	//only set hash, reload required
+	location.reload();
 }

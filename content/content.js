@@ -16,6 +16,9 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		inCommonOption,
 		getCommonOptionSetting,
 		getChromeStorageSync,
+		setBackgroundLocalStorange,
+		getBackgroundLocalStorage,
+		removeBackgroundLocalStorage,
 		buildUserH5Entry,
 		buildAppAdminEntry
 	} = await import(chrome.runtime.getURL('common/common.js'));
@@ -26,6 +29,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		decodeBase64,
 		createHtml,
 		domContained,
+		jumpTo,
 		layDomInView
 	} = await import(chrome.runtime.getURL('common/function.js'));
 
@@ -66,23 +70,23 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	patchCss(`html {filter:none !important;}`);
 
 	const toggleCss = (id, stateOn) => {
-		if(!CSS_MAP[id]){
+		if (!CSS_MAP[id]) {
 			return;
 		}
 		let style = document.getElementById(id);
-		if(!style){
+		if (!style) {
 			style = patchCss(CSS_MAP[id], id);
 		}
 		style.setAttribute('type', stateOn ? 'text/css' : 'text');
 	}
 
 	//init read config in storage
-	for(let groupTitle in COMMON_OPTIONS){
+	for (let groupTitle in COMMON_OPTIONS) {
 		COMMON_OPTIONS[groupTitle].forEach(({
-			                                    title,
-			                                    key,
-			                                    defaultValue
-		                                    }) => {
+			title,
+			key,
+			defaultValue
+		}) => {
 			getChromeStorageSync(key, defaultValue).then(value => {
 				inCommonOption(key) && toggleCss(key, value);
 			});
@@ -95,8 +99,8 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	//listen storage change event
 	chrome.storage.onChanged.addListener((allChanges, namespace) => {
 		console.log('chrome.storage.sync changed', allChanges);
-		for(let key in allChanges){
-			if(key === 'coding.quickNav'){
+		for (let key in allChanges) {
+			if (key === 'coding.quickNav') {
 				quickNavStateOn = allChanges[key].newValue;
 				toggleQuickNavEntry(quickNavStateOn);
 			}
@@ -106,9 +110,9 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	document.body.addEventListener('DOMSubtreeModified', e => {
 		setTimeout(() => {
-			if(!checkNavFit()){
+			if (!checkNavFit()) {
 				hideQuickNavEntry();
-			}else{
+			} else {
 				getCommonOptionSetting('coding.quickNav').then(ok => {
 					quickNavStateOn = ok;
 					toggleQuickNavEntry(quickNavStateOn)
@@ -123,15 +127,15 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	const navToNext = (toPrevious = false) => {
 		let currentItem = document.querySelector('td div[class*="table-title-"][class*="current-"]');
-		if(currentItem){
+		if (currentItem) {
 			let tr = closest(currentItem, 'tr');
 			let newTr = toPrevious ? tr.previousElementSibling : tr.nextElementSibling;
-			if(!newTr){
+			if (!newTr) {
 				console.log('到尽头了');
 				return;
 			}
 			let nextAnchor = newTr.querySelector('div[class*="table-title-"]');
-			if(nextAnchor){
+			if (nextAnchor) {
 				nextAnchor.click();
 				return;
 			}
@@ -141,7 +145,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	let entryDom = null;
 	const toggleQuickNavEntry = (turnOn) => {
-		if(!entryDom){
+		if (!entryDom) {
 			entryDom = document.createElement('div');
 			entryDom.style.display = 'none';
 			entryDom.className = 'xe-run-quick-nav';
@@ -154,31 +158,31 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 				navToNext(false);
 			});
 		}
-		if(turnOn && checkNavFit()){
+		if (turnOn && checkNavFit()) {
 			entryDom.style.display = '';
-		}else{
+		} else {
 			hideQuickNavEntry();
 		}
 	};
 
 	const hideQuickNavEntry = () => {
-		if(entryDom){
+		if (entryDom) {
 			entryDom.style.display = 'none';
 		}
 	}
 
-	if(location.host === 'xiaoe.coding.net'){
+	if (location.host === 'xiaoe.coding.net') {
 		document.body.addEventListener('keyup', e => {
-			if(!quickNavStateOn){
+			if (!quickNavStateOn) {
 				return;
 			}
 			console.log('coding nav key up');
-			if(e.target.matches('input') || e.target.matches('textarea')){
+			if (e.target.matches('input') || e.target.matches('textarea')) {
 				return;
 			}
-			if(e.key === 'ArrowLeft'){
+			if (e.key === 'ArrowLeft') {
 				navToNext(true);
-			}else if(e.key === 'ArrowRight'){
+			} else if (e.key === 'ArrowRight') {
 				navToNext(false);
 			}
 		});
@@ -189,7 +193,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 	}
 
-	if(location.host === 'xiaoe.coding.net' || location.host === 'www.tapd.cn' || location.host.indexOf('xiaoe-tech.com') > 0){
+	if (location.host === 'xiaoe.coding.net' || location.host === 'www.tapd.cn' || location.host.indexOf('xiaoe-tech.com') > 0) {
 		let panel = null;
 		patchCss(`
 			.xe-run-panel {
@@ -210,9 +214,9 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		`, 'xe-run-panel');
 
 		chrome.storage.onChanged.addListener((allChanges, namespace) => {
-			for(let key in allChanges){
-				if(key === 'coding.contentResolve'){
-					if(!allChanges[key].newValue){
+			for (let key in allChanges) {
+				if (key === 'coding.contentResolve') {
+					if (!allChanges[key].newValue) {
 						hide(panel);
 					}
 				}
@@ -220,7 +224,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 
 		document.addEventListener('mousedown', e => {
-			if(panel && domContained(panel, e.target)){
+			if (panel && domContained(panel, e.target)) {
 				return;
 			}
 			hide(panel);
@@ -228,26 +232,26 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 		document.addEventListener('mouseup', e => {
 			console.log('mouse up');
-			if(panel && domContained(panel, e.target)){
+			if (panel && domContained(panel, e.target)) {
 				return;
 			}
 			hide(panel);
 			setTimeout(() => {
 				getCommonOptionSetting('coding.contentResolve').then(ok => {
-					if(!ok){
+					if (!ok) {
 						return;
 					}
 					let selection = document.getSelection();
 					let selected_text = selection.toString().trim();
-					if(!selected_text.length){
+					if (!selected_text.length) {
 						return;
 					}
 					let html = renderTextResult(selected_text, true);
-					if(!html){
+					if (!html) {
 						hide(panel);
 						return;
 					}
-					if(!panel){
+					if (!panel) {
 						panel = document.createElement('div');
 						document.body.appendChild(panel);
 						panel.classList.add('xe-run-panel');
@@ -256,12 +260,12 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 						panel.style.top = '0px';
 						panel.style.display = 'none';
 						panel.addEventListener('click', e => {
-							if(e.target.id === 'xe-run-panel-close'){
+							if (e.target.id === 'xe-run-panel-close') {
 								hide(panel);
 							}
 						});
 						document.body.addEventListener('keyup', e => {
-							if(e.key === 'Escape'){
+							if (e.key === 'Escape') {
 								hide(panel);
 							}
 						});
@@ -282,19 +286,19 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	}
 
 	//登录H5链接
-	if(location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0){
+	if (location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0) {
 		let jsonStr = document.body.innerText;
 		let obj = JSON.parse(jsonStr);
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
 		debugger;
-		if(obj.code === 3){
-			jumpParam && localStorage.setItem(SUPER_JUMP_KEY, jumpParam);
+		if (obj.code === 3) {
+			jumpParam && setBackgroundLocalStorange(SUPER_JUMP_KEY, jumpParam);
 			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
-		if(obj.code === 0 && obj.data.howtodo){
-			localStorage.removeItem(SUPER_JUMP_KEY);
+		if (obj.code === 0 && obj.data.howtodo) {
+			removeBackgroundLocalStorage(SUPER_JUMP_KEY);
 			let tm = 5000;
 			let timer = null;
 			let html = `<hr/>
@@ -308,30 +312,30 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			let iframe = document.getElementById('auth_iframe');
 			let cdBtn = document.getElementById('xe-run-countdown');
 			cdBtn.addEventListener('click', e => {
-				if(timer){
+				if (timer) {
 					clearTimeout(timer);
 				}
 			});
 			const countDown = (tm) => {
-				if(tm > 0){
+				if (tm > 0) {
 					tm -= 100;
 					cdBtn.value = `停止(${(tm / 1000).toFixed(2)}s)`;
 					timer = setTimeout(() => {
 						countDown(tm)
 					}, 100);
-				}else{
+				} else {
 					let cosplayUrl = obj.data.howtodo.onekeycosplay;
-					if(jumpParam){
+					if (jumpParam) {
 						let jumpData = JSON.parse(decodeBase64(jumpParam));
 						//先登录管理台，再在当前tab打开指定连接
 						chrome.runtime.sendMessage({
 							action: 'openTabOnce',
 							url: cosplayUrl
-						}, function(response){
+						}, function (response) {
 							location.href = jumpData.url;
 							console.log(response);
 						});
-					}else{
+					} else {
 						document.location.href = cosplayUrl;
 					}
 				}
@@ -341,43 +345,36 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	}
 
 	//登录B端管理台
-	if(location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0){
+	if (location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0) {
 		let jsonStr = document.body.innerText;
 		let obj = JSON.parse(jsonStr);
 		let search = new URLSearchParams(location.search);
-		debugger;
 		let jumpParam = search.get('jumpParam');
-		if(obj.code === 3){
-			jumpParam && localStorage.setItem(SUPER_JUMP_KEY, jumpParam);
+		jumpParam && setBackgroundLocalStorange(SUPER_JUMP_KEY, jumpParam);
+		if (obj.code === 3) {
 			createHtml(`
 				<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>
 				<center><a href="https://o-oauth.xiaoe-tech.com/login_page">立即登录</a></center>
 			`);
-			setTimeout(function(){
+			setTimeout(() => {
 				location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 			}, 500);
 		}
-		if(obj.code === 0){
-			let jumpData = JSON.parse(decodeBase64(jumpParam));
-			//先登录管理台，再在当前tab打开指定连接
-			chrome.runtime.sendMessage({
-				action: 'openTabOnce',
-				url: obj.data.redirect_to
-			}, function(response){
-				location.href = jumpData.url;
-			});
+		if (obj.code === 0) {
+			location.href = obj.data.redirect_to; //成功，跳转到指定链接（携带鉴权信息）
 		}
 	}
 
 	//内部管理系统首页
-	if(location.href === 'https://super.xiaoe-tech.com/new'){
-		let jumpParam = localStorage.getItem(SUPER_JUMP_KEY);
-		if(jumpParam){
-			//后续补充patch
-			setTimeout(() => {
+	if (location.href === 'https://super.xiaoe-tech.com/new' ||
+		location.href === 'https://super.xiaoe-tech.com/new#guider_page') {
+		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
+			if (jumpParam) {
+				//后续补充patch
 				debugger;
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
-				switch(jumpData.type){
+				console.log(jumpData, jumpParam);
+				switch (jumpData.type) {
 					case 'AppAdmin':
 						let appAdminForm = createHtml(buildAppAdminEntry(jumpData.appId, '跳转中', jumpData.url));
 						appAdminForm.removeAttribute('target');
@@ -392,7 +389,21 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 					default:
 						throw "Type Error";
 				}
-			}, 1000);
-		}
+			}
+		});
+	}
+
+	//B端管理台页面，需要处理跳转到指定页面逻辑
+	if (location.origin === 'https://admin.xiaoe-tech.com') {
+		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
+			debugger;
+			if (jumpParam) {
+				removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
+				let jumpData = JSON.parse(decodeBase64(jumpParam));
+				if (jumpData.url) {
+					jumpTo(jumpData.url);
+				}
+			}
+		});
 	}
 })();

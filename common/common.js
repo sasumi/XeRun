@@ -1,4 +1,8 @@
-import {decodeBase64, encodeBase64, cutTxt} from "./function.js";
+import {
+	decodeBase64,
+	encodeBase64,
+	cutTxt
+} from "./function.js";
 
 const DEFAULT_LINK_WORD_COUNT = 35;
 
@@ -7,12 +11,12 @@ export const COMMON_OPTIONS = {
 		title: '页面选中内容智能识别',
 		key: 'coding.contentResolve',
 		defaultValue: true
-	},],
+	}, ],
 	'Coding': [{
-		title: '工单内容直接显示(禁用折叠功能)',
-		key: 'coding.showFullContent',
-		defaultValue: true
-	},
+			title: '工单内容直接显示(禁用折叠功能)',
+			key: 'coding.showFullContent',
+			defaultValue: true
+		},
 		{
 			title: '工单内图片高度缩小为合适高度',
 			key: 'coding.imgAutoAdjust',
@@ -33,19 +37,19 @@ export const COMMON_OPTIONS = {
 		title: '去水印',
 		key: 'txdoc.removeWatermark',
 		defaultValue: true
-	},],
+	}, ],
 	'XET管理台': [{
 		title: '去水印',
 		key: 'xet.removeWatermark',
 		defaultValue: true
-	},]
+	}, ]
 };
 
 export const inCommonOption = key => {
 	let matched = null;
-	for(let groupTitle in COMMON_OPTIONS){
+	for (let groupTitle in COMMON_OPTIONS) {
 		COMMON_OPTIONS[groupTitle].forEach((opt) => {
-			if(key === opt.key){
+			if (key === opt.key) {
 				matched = opt;
 				return false;
 			}
@@ -57,7 +61,7 @@ export const inCommonOption = key => {
 export const getCommonOptionSetting = (key) => {
 	return new Promise((resolve, reject) => {
 		let opt = inCommonOption(key);
-		if(!opt){
+		if (!opt) {
 			return reject('option key no in common');
 		}
 		getChromeStorageSync(key, opt.defaultValue).then(val => {
@@ -82,9 +86,49 @@ export const getPasteContent = () => {
 	return input.value;
 }
 
+export const setBackgroundLocalStorange = (key, data) => {
+	console.log('setBackgroundLocalStorange', key, data);
+	return new Promise(resolve => {
+		chrome.runtime.sendMessage({
+			action: 'setLocal',
+			key: key,
+			data: data
+		}, function () {
+			console.log('set bg ls', key, data);
+			resolve();
+		});
+	});
+};
+
+export const getBackgroundLocalStorage = (key) => {
+	console.log('getBackgroundLocalStorage');
+	return new Promise(resolve => {
+		chrome.runtime.sendMessage({
+			action: 'getLocal',
+			key: key
+		}, function (data) {
+			console.log('get bg ls', key, data);
+			resolve(data);
+		});
+	});
+};
+
+export const removeBackgroundLocalStorage = (key)=>{
+	console.log('removeBackgroundLocalStorage');
+	return new Promise(resolve => {
+		chrome.runtime.sendMessage({
+			action: 'removeLocal',
+			key: key
+		}, function () {
+			console.log('rm bg ls', key);
+			resolve();
+		});
+	});
+};
+
 export const getChromeStorageSync = (key, defaultValue) => {
 	return new Promise((resolve) => {
-		chrome.storage.sync.get(key, obj => {
+		chrome.storage.sync.get([key], obj => {
 			resolve(obj[key] === undefined ? defaultValue : obj[key]);
 		});
 	});
@@ -94,7 +138,7 @@ export const onChromeStorageSyncChange = (key, payload) => {
 	chrome.storage.sync.addListen((allChanges, namespace) => {
 		console.log('chrome.storage.sync changed', allChanges);
 		let changes = allChanges[key];
-		if(changes){
+		if (changes) {
 			payload(changes.newValue, changes.oldValue);
 		}
 	});
@@ -133,7 +177,7 @@ export const resolveUrls = (txt) => {
 	txt = ' ' + txt + ' ';
 	txt.replace(/(https|http)(:\/\/.*?)[\s\n]/ig, ms => {
 		ms = ms.trim();
-		if(!tmp[ms]){
+		if (!tmp[ms]) {
 			urls.push(ms.trim());
 			tmp[ms] = true;
 		}
@@ -155,7 +199,11 @@ export const isH5Link = link => {
  * @returns {String}
  */
 export const buildAppAdminEntry = (appId, title = "店铺管理台", jump = '') => {
-	let jumpParam = encodeBase64(JSON.stringify({type: 'AppAdmin', url: jump, appId: appId}));
+	let jumpParam = encodeBase64(JSON.stringify({
+		type: 'AppAdmin',
+		url: jump,
+		appId: appId
+	}));
 	return `<form action="https://super.xiaoe-tech.com/new/saveLoginLog?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="context_reason" value="1"/>
@@ -173,7 +221,12 @@ export const buildAppAdminEntry = (appId, title = "店铺管理台", jump = '') 
  * @returns {String}
  */
 export const buildUserH5Entry = (appId, userId, jump = '') => {
-	let jumpParam = encodeBase64(JSON.stringify({type: 'UserH5', url: jump, appId: appId, userId: userId}));
+	let jumpParam = encodeBase64(JSON.stringify({
+		type: 'UserH5',
+		url: jump,
+		appId: appId,
+		userId: userId
+	}));
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
@@ -194,43 +247,11 @@ export const buildAppPCUrl = appId => {
 };
 
 export const buildCommunityPCUrl = (appId, commId) => {
-	return buildLink(`https://quanzi.xiaoe-tech.com/${commId}/feed_list?app_id=${appId}`, '',);
+	return buildLink(`https://quanzi.xiaoe-tech.com/${commId}/feed_list?app_id=${appId}`, '', );
 };
 
 export const buildCommunityH5Url = (appId, commId) => {
 	return buildLink(`https://${appId}.h5.xiaoeknow.com/xe.community.community_service/v2/feedList?app_id=${appId}&community_id=${commId}&product_id=&share_user_id=`);
-};
-
-export const queryESLogByUserId = (userId, startDate, endDate = null) => {
-	let uin = '100047879730';
-	let endTimestamp = (new Date(endDate)).getTime();
-	fetch(`https://capi.cloud.tencent.com/cgi/cls?i=cls/SearchLog&uin=${uin}`, {
-		"headers": {
-			"accept": "application/json, text/javascript, */*; q=0.01",
-			"accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-			"cache-control": "no-cache",
-			"content-type": "application/json; charset=UTF-8",
-			"pragma": "no-cache",
-			"sec-ch-ua": "\"Microsoft Edge\";v=\"107\", \"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
-			"sec-ch-ua-mobile": "?0",
-			"sec-ch-ua-platform": "\"Windows\"",
-			"sec-fetch-dest": "empty",
-			"sec-fetch-mode": "cors",
-			"sec-fetch-site": "same-origin",
-			"x-csrfcode": "1029253491",
-			"x-lid": "rkwlAtsHo",
-			"x-life": "57327",
-			"x-referer": "https://console.cloud.tencent.com/cls/search?hideLeftNav&hideTopNav&hideHeader&grammarVersion=lucene&region=ap-shanghai&topic_id=69df62e7-eb41-454a-8262-db4415a85aa0&queryBase64=dV82MmVhMWVlNTU5YTFmX2VneHBNNks4Y2UgQU5EIG1pbmk&time=now%2Fw,now%2Fw",
-			"x-requested-with": "XMLHttpRequest",
-			"x-seqid": "83ebd318-9140-3707-a4e6-7f288ae742c1"
-		},
-		"referrer": "https://capi.cloud.tencent.com/proxy.html",
-		"referrerPolicy": "strict-origin-when-cross-origin",
-		"body": "{\"serviceType\":\"cls\",\"action\":\"SearchLog\",\"data\":{\"Version\":\"2020-10-16\",\"TopicId\":\"69df62e7-eb41-454a-8262-db4415a85aa0\",\"From\":1667750400000,\"To\":1668355199999,\"Query\":\"u_62ea1ee559a1f_egxpM6K8ce AND mini\",\"Limit\":20,\"Context\":\"\",\"Sort\":\"desc\",\"HighLight\":true,\"UseNewAnalysis\":true,\"QueryOptimize\":1,\"SamplingRate\":1,\"SyntaxRule\":0},\"regionId\":4,\"clientTimeout\":65000}",
-		"method": "POST",
-		"mode": "cors",
-		"credentials": "include"
-	});
 };
 
 export const renderTextResult = (txt, hieNoResult = false) => {
@@ -243,54 +264,54 @@ export const renderTextResult = (txt, hieNoResult = false) => {
 	let opHtml = '';
 	let infoHtml = '';
 
-	if(links.length){
+	if (links.length) {
 		links.forEach((link, idx) => {
 			infoHtml += `<li><label>链接${links.length > 1 ? idx + 1 : ''}：</label><span>${buildLink(link)}</span></li>`;
 		});
 	}
 
-	if(appId){
+	if (appId) {
 		opHtml += buildAppAdminEntry(appId, '店铺管理台', 'https://admin.xiaoe-tech.com/');
-		if(userId){
+		if (userId) {
 			opHtml += buildAppAdminEntry(appId, '管理台用户详情', `https://admin.xiaoe-tech.com/t/user_manage/index#/user_list/userDetails/openRecords?userId=${userId}`);
 		}
-		if(communityId){
+		if (communityId) {
 			opHtml += buildAppAdminEntry(appId, '管理台圈子详情', `https://admin.xiaoe-tech.com/smallCommunity/communityList#/community_manage/content_settings/feed_list?communityId=${communityId}&type=manage`);
 		}
 	}
 
-	if(appId){
+	if (appId) {
 		infoHtml += `<li><label>店铺ID：</label><span>${appId}</span></li>`;
 		infoHtml += `<li><label>店铺PC链接：</label><span>${buildAppPCUrl(appId)}</span></li>`;
 		infoHtml += `<li><label>店铺H5链接：</label><span>${buildAppH5Url(appId)}</span></li>`;
 	}
-	if(userId){
+	if (userId) {
 		infoHtml += `<li><label>用户ID：</label><span>${userId}</span></li>`;
 	}
-	if(communityId){
+	if (communityId) {
 		infoHtml += `<li><label>圈子ID：</label><span>${communityId}</span></li>`;
 		infoHtml += appId ? `<li><label>圈子H5链接：</label><span>${buildCommunityH5Url(appId, communityId)}</span></li>` : '';
 		infoHtml += appId ? `<li><label>圈子PC链接：</label><span>${buildCommunityPCUrl(appId, communityId)}</span></li>` : '';
 	}
 
-	if(appId && userId){
-		if(links.length){
+	if (appId && userId) {
+		if (links.length) {
 			links.forEach(link => {
 				opHtml += buildUserH5Entry(appId, userId, isH5Link(link) ? link : '');
 			});
-		}else{
+		} else {
 			opHtml += buildUserH5Entry(appId, userId);
 		}
 	}
 
-	if(fromBase64){
+	if (fromBase64) {
 		infoHtml += `<li><label>Base64解码：</label><span>${fromBase64}</span></li>`;
 	}
-	if(!txt){
+	if (!txt) {
 		return '';
-	}else if(!infoHtml.length && !opHtml.length){
+	} else if (!infoHtml.length && !opHtml.length) {
 		return hieNoResult ? '' : `<p style="padding:1em 0">不知道这里面有什么东西···</p>`;
-	}else{
+	} else {
 		return `<ul class="info-list">${infoHtml}</ul>` + opHtml;
 	}
 }
