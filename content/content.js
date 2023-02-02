@@ -209,6 +209,11 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			.xe-run-panel .btn-danger,
 			.xe-run-panel .btn-danger:hover{background-color:#ffd7b8; border-color:#ff9c4f; color:#ff7204;}
 			.xe-run-panel .btn-danger:hover {background-color: #fff;}
+
+			.xe-run-panel .btn-h5-system,
+			.xe-run-panel .btn-h5-system:hover {background-color:#4b8bff; border-color:#286be5; color:#fff;}
+			.xe-run-panel .btn-h5-system:hover {background-color: #fff; color:#286be5}
+
 			#xe-run-panel-close {position:absolute; color:gray; cursor:pointer; top:0; right:0; z-index:1; width:30px; height:30px; box-sizing:border-box; font-size:18px;  overflow:hidden; text-align:center; }
 			#xe-run-panel-close:hover {color:black;}
 		`, 'xe-run-panel');

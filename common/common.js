@@ -209,7 +209,7 @@ export const buildAppAdminEntry = (appId, title = "店铺管理台", jump = '') 
                 <input type="hidden" name="context_reason" value="1"/>
                 <input type="hidden" name="context_resource_id" value="0"/>
                 <input type="hidden" name="context_resource_type" value="4"/>
-                <input type="submit" value="${title}" class="btn btn-danger"/>
+                <input type="submit" value="${title}" class="btn btn-danger btn-admin-system"/>
             </form>`;
 };
 
@@ -230,7 +230,7 @@ export const buildUserH5Entry = (appId, userId, jump = '') => {
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" value="登录用户H5端" class="btn btn-danger"/>
+                <input type="submit" value="登录H5端" class="btn btn-danger btn-h5-system"/>
             </form>`;
 };
 
@@ -271,7 +271,7 @@ export const renderTextResult = (txt, hieNoResult = false) => {
 	}
 
 	if (appId) {
-		opHtml += buildAppAdminEntry(appId, '店铺管理台', 'https://admin.xiaoe-tech.com/');
+		opHtml += buildAppAdminEntry(appId, '登录管理台', 'https://admin.xiaoe-tech.com/');
 		if (userId) {
 			opHtml += buildAppAdminEntry(appId, '管理台用户详情', `https://admin.xiaoe-tech.com/t/user_manage/index#/user_list/userDetails/openRecords?userId=${userId}`);
 		}

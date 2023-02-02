@@ -1,4 +1,5 @@
-const {buildCookieCmd, batchAddListener} = import("../common/function.js");
+import {buildCookieCmd, batchAddListener} from "../common/function.js";
+
 let dropZoneDom = document.querySelector('.drop-file-zone');
 let dropFile = document.querySelector('.drop-file-zone input[type=file]');
 let dropFileTip = document.querySelector('.drop-file-zone .tip');
@@ -54,6 +55,8 @@ dropFile.addEventListener('change', e => {
     }
 });
 dropFile.addEventListener('drop', e=>{
+    debugger;
+    console.log(e);
     dropZoneDom.classList.remove('dragover');
     e.preventDefault();
     if(e.dataTransfer.files){
