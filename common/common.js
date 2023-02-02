@@ -9,7 +9,11 @@ const DEFAULT_LINK_WORD_COUNT = 35;
 export const COMMON_OPTIONS = {
 	'通用': [{
 		title: '页面选中内容智能识别',
-		key: 'coding.contentResolve',
+		key: 'common.contentResolve',
+		defaultValue: true
+	},{
+		title: '鼠标中键智能打开新窗口',
+		key: 'common.newWinAuto',
 		defaultValue: true
 	}, ],
 	'Coding': [{

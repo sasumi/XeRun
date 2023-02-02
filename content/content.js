@@ -220,7 +220,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 		chrome.storage.onChanged.addListener((allChanges, namespace) => {
 			for (let key in allChanges) {
-				if (key === 'coding.contentResolve') {
+				if (key === 'common.contentResolve') {
 					if (!allChanges[key].newValue) {
 						hide(panel);
 					}
@@ -242,7 +242,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			}
 			hide(panel);
 			setTimeout(() => {
-				getCommonOptionSetting('coding.contentResolve').then(ok => {
+				getCommonOptionSetting('common.contentResolve').then(ok => {
 					if (!ok) {
 						return;
 					}
@@ -376,7 +376,6 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
 			if (jumpParam) {
 				//后续补充patch
-				debugger;
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
 				console.log(jumpData, jumpParam);
 				switch (jumpData.type) {
@@ -401,7 +400,6 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	//B端管理台页面，需要处理跳转到指定页面逻辑
 	if (location.origin === 'https://admin.xiaoe-tech.com') {
 		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
-			debugger;
 			if (jumpParam) {
 				removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
@@ -411,4 +409,82 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			}
 		});
 	}
+
+	//new window option
+	let NEW_WIN_AUTO_ENABLED = false;
+	getCommonOptionSetting('common.newWinAuto').then(ok=>{NEW_WIN_AUTO_ENABLED = ok;});
+	chrome.storage.onChanged.addListener((allChanges, namespace) => {
+		for (let key in allChanges) {
+			if (key === 'common.newWinAuto') {
+				NEW_WIN_AUTO_ENABLED = allChanges[key].newValue;
+			}
+			inCommonOption(key) && toggleCss(key, allChanges[key].newValue);
+		}
+	});
+
+	const getCurrentWindowId = ()=>{
+		return new Promise(resolve => {
+			let sessKey = 'CURRENT_WINDOW_ID_SESS_KEY';
+			let winId = sessionStorage.getItem(sessKey)
+			if(winId){
+				resolve(winId);
+				return;
+			}
+			chrome.runtime.sendMessage({
+				action: 'getWindowID'
+			}, function (winId) {
+				sessionStorage.setItem(sessKey, winId);
+				console.log('current window ID fetch from background:', winId);
+				resolve(winId);
+			});
+		});
+	}
+
+	let TARGET_WINDOW_ID_SESS_KEY = 'TARGET_WINDOW_ID_SESS_KEY';
+	const getTargetWindowId = ()=>{
+		let winId = sessionStorage.getItem(TARGET_WINDOW_ID_SESS_KEY);
+		winId = parseInt(winId);
+		return winId || null;
+	};
+
+	const setTargetWindowId = (winId)=>{
+		sessionStorage.setItem(TARGET_WINDOW_ID_SESS_KEY, winId);
+	}
+
+	const openNewWindowBackground = (targetWinId = null, href)=>{
+		return new Promise(resolve => {
+			chrome.runtime.sendMessage({
+				action: 'openNewWindowBackground',
+				url: href,
+				windowId:targetWinId
+			}, function (tagWinId) {
+				resolve(tagWinId);
+			});
+		});
+	}
+
+	getCurrentWindowId().then(winId=>{
+		console.log('current win id', winId);
+	});
+
+	document.body.addEventListener('auxclick', e=>{
+		console.log('auxclick detected');
+		if(!NEW_WIN_AUTO_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length){
+			console.log('xx');
+			return;
+		}
+		if(e.button !== 1){
+			console.log('不是鼠标中键',e);
+			return;
+		}
+		let href = e.target.href;
+		let targetWinId = getTargetWindowId();
+		console.log('start do open win', href, targetWinId);
+		openNewWindowBackground(targetWinId, href).then(tId=>{
+			console.log('open win succ', tId);
+			setTargetWindowId(tId);
+		});
+		e.preventDefault();
+		return false;
+	});
 })();
