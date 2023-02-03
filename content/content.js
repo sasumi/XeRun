@@ -451,7 +451,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	}
 
 	document.body.addEventListener('click', e=>{
-		if(!LINK_CLICK_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length){
+		if(!LINK_CLICK_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length || e.target.href.indexOf('blob:') === 0){
 			return;
 		}
 		let href = e.target.href;
@@ -472,7 +472,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	});
 
 	document.body.addEventListener('auxclick', e=>{
-		if(!MID_BTN_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length){
+		if(!MID_BTN_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length || e.target.href.indexOf('blob:') === 0){
 			return;
 		}
 		if(e.button !== 1){
