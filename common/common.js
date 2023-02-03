@@ -7,15 +7,21 @@ import {
 const DEFAULT_LINK_WORD_COUNT = 35;
 
 export const COMMON_OPTIONS = {
-	'通用': [{
-		title: '页面选中内容智能识别',
-		key: 'common.contentResolve',
-		defaultValue: true
-	},{
-		title: '鼠标中键智能打开新窗口',
-		key: 'common.newWinAuto',
-		defaultValue: true
-	}, ],
+	'通用': [
+		{
+			title: '页面选中内容智能识别',
+			key: 'common.contentResolve',
+			defaultValue: true
+		},{
+			title: '鼠标中键智能打开新窗口',
+			key: 'common.MidBtnNewWin',
+			defaultValue: true
+		},{
+			title: '链接点击智能打开新窗口',
+			key: 'common.LinkClickNewWin',
+			defaultValue: true
+		},
+	],
 	'Coding': [{
 			title: '工单内容直接显示(禁用折叠功能)',
 			key: 'coding.showFullContent',

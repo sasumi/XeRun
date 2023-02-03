@@ -411,34 +411,21 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	}
 
 	//new window option
-	let NEW_WIN_AUTO_ENABLED = false;
-	getCommonOptionSetting('common.newWinAuto').then(ok=>{NEW_WIN_AUTO_ENABLED = ok;});
+	let MID_BTN_NEW_WIN_ENABLED = false;
+	let LINK_CLICK_NEW_WIN_ENABLED = false;
+	getCommonOptionSetting('common.MidBtnNewWin').then(ok=>{MID_BTN_NEW_WIN_ENABLED = ok;});
+	getCommonOptionSetting('common.LinkClickNewWin').then(ok=>{LINK_CLICK_NEW_WIN_ENABLED = ok;});
 	chrome.storage.onChanged.addListener((allChanges, namespace) => {
 		for (let key in allChanges) {
-			if (key === 'common.newWinAuto') {
-				NEW_WIN_AUTO_ENABLED = allChanges[key].newValue;
+			if (key === 'common.MidBtnNewWin') {
+				MID_BTN_NEW_WIN_ENABLED = allChanges[key].newValue;
+			}
+			if (key === 'common.LinkClickNewWin') {
+				LINK_CLICK_NEW_WIN_ENABLED = allChanges[key].newValue;
 			}
 			inCommonOption(key) && toggleCss(key, allChanges[key].newValue);
 		}
 	});
-
-	const getCurrentWindowId = ()=>{
-		return new Promise(resolve => {
-			let sessKey = 'CURRENT_WINDOW_ID_SESS_KEY';
-			let winId = sessionStorage.getItem(sessKey)
-			if(winId){
-				resolve(winId);
-				return;
-			}
-			chrome.runtime.sendMessage({
-				action: 'getWindowID'
-			}, function (winId) {
-				sessionStorage.setItem(sessKey, winId);
-				console.log('current window ID fetch from background:', winId);
-				resolve(winId);
-			});
-		});
-	}
 
 	let TARGET_WINDOW_ID_SESS_KEY = 'TARGET_WINDOW_ID_SESS_KEY';
 	const getTargetWindowId = ()=>{
@@ -463,14 +450,29 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 	}
 
-	getCurrentWindowId().then(winId=>{
-		console.log('current win id', winId);
+	document.body.addEventListener('click', e=>{
+		if(!LINK_CLICK_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length){
+			return;
+		}
+		let href = e.target.href;
+		let link = document.createElement('a');
+		link.href = href;
+		if(link.hostname === document.location.hostname){
+			console.log('同一个host不开新窗口');
+			return;
+		}
+		let targetWinId = getTargetWindowId();
+		console.log('start do open win', href, targetWinId);
+		openNewWindowBackground(targetWinId, href).then(tId=>{
+			console.log('open win succ', tId);
+			setTargetWindowId(tId);
+		});
+		e.preventDefault();
+		return false;
 	});
 
 	document.body.addEventListener('auxclick', e=>{
-		console.log('auxclick detected');
-		if(!NEW_WIN_AUTO_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length){
-			console.log('xx');
+		if(!MID_BTN_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length){
 			return;
 		}
 		if(e.button !== 1){
