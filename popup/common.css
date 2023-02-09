@@ -18,8 +18,8 @@ h2 {font-size:1.2rem; padding:0.5em; margin:0;}
 a, .link {color:#1495db; text-decoration: none; cursor: pointer;}
 input,textarea {font-family: var(--font-family); font-size:var(--font-size);}
 input:focus, textarea:focus {outline:1px solid gray;}
+#page {position:relative;}
 .content {padding:1em; max-height:480px; overflow:auto;}
-
 
 .btn {
     display: inline-block;
@@ -58,7 +58,7 @@ input:focus, textarea:focus {outline:1px solid gray;}
 .checkbox-checked:before {float:right;}
 .checkbox-disabled {opacity: 0.5; cursor: default;}
 
-.option-link {float:right;margin:-30px 1em 0 0;color:white;opacity: 0.5;}
+.option-link {position: absolute;top: 0;color:white;opacity: 0.5;padding: 1.2em;right: 0;}
 .option-link:before {content:""; display:inline-block; width:16px; height:16px; margin-right:0.2em; vertical-align:middle; background-image: url("option.svg"); background-size:contain}
 .option-link:hover {opacity: 1;}
 
