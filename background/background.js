@@ -42,7 +42,7 @@ const openWinBackground = (winId, url, onOpen) => {
 			console.warn('原来的窗口ID失效了。');
 			chrome.windows.create({
 				url: url,
-				focused: false,
+				focused: true,
 				type: 'normal',
 			}).then(win => {
 				console.log(win.id);
