@@ -1,10 +1,10 @@
 import {
 	decodeBase64,
 	encodeBase64,
-	cutTxt
+	cutTxt, escapeHtml, escapeAttr
 } from "./function.js";
 
-const DEFAULT_LINK_WORD_COUNT = 35;
+const DEFAULT_LINK_WORD_COUNT = 40;
 
 export const COMMON_OPTIONS = {
 	'通用': [
@@ -12,21 +12,21 @@ export const COMMON_OPTIONS = {
 			title: '页面选中内容智能识别',
 			key: 'common.contentResolve',
 			defaultValue: true
-		},{
+		}, {
 			title: '鼠标中键智能打开新窗口',
 			key: 'common.MidBtnNewWin',
 			defaultValue: true
-		},{
+		}, {
 			title: '链接点击智能打开新窗口',
 			key: 'common.LinkClickNewWin',
 			defaultValue: true
 		},
 	],
 	'Coding': [{
-			title: '工单内容直接显示(禁用折叠功能)',
-			key: 'coding.showFullContent',
-			defaultValue: true
-		},
+		title: '工单内容直接显示(禁用折叠功能)',
+		key: 'coding.showFullContent',
+		defaultValue: true
+	},
 		{
 			title: '工单内图片高度缩小为合适高度',
 			key: 'coding.imgAutoAdjust',
@@ -47,19 +47,19 @@ export const COMMON_OPTIONS = {
 		title: '去水印',
 		key: 'txdoc.removeWatermark',
 		defaultValue: true
-	}, ],
+	},],
 	'XET管理台': [{
 		title: '去水印',
 		key: 'xet.removeWatermark',
 		defaultValue: true
-	}, ]
+	},]
 };
 
 export const inCommonOption = key => {
 	let matched = null;
-	for (let groupTitle in COMMON_OPTIONS) {
+	for(let groupTitle in COMMON_OPTIONS){
 		COMMON_OPTIONS[groupTitle].forEach((opt) => {
-			if (key === opt.key) {
+			if(key === opt.key){
 				matched = opt;
 				return false;
 			}
@@ -71,7 +71,7 @@ export const inCommonOption = key => {
 export const getCommonOptionSetting = (key) => {
 	return new Promise((resolve, reject) => {
 		let opt = inCommonOption(key);
-		if (!opt) {
+		if(!opt){
 			return reject('option key no in common');
 		}
 		getChromeStorageSync(key, opt.defaultValue).then(val => {
@@ -103,7 +103,7 @@ export const setBackgroundLocalStorange = (key, data) => {
 			action: 'setLocal',
 			key: key,
 			data: data
-		}, function () {
+		}, function(){
 			console.log('set bg ls', key, data);
 			resolve();
 		});
@@ -116,20 +116,20 @@ export const getBackgroundLocalStorage = (key) => {
 		chrome.runtime.sendMessage({
 			action: 'getLocal',
 			key: key
-		}, function (data) {
+		}, function(data){
 			console.log('get bg ls', key, data);
 			resolve(data);
 		});
 	});
 };
 
-export const removeBackgroundLocalStorage = (key)=>{
+export const removeBackgroundLocalStorage = (key) => {
 	console.log('removeBackgroundLocalStorage');
 	return new Promise(resolve => {
 		chrome.runtime.sendMessage({
 			action: 'removeLocal',
 			key: key
-		}, function () {
+		}, function(){
 			console.log('rm bg ls', key);
 			resolve();
 		});
@@ -148,7 +148,7 @@ export const onChromeStorageSyncChange = (key, payload) => {
 	chrome.storage.sync.addListen((allChanges, namespace) => {
 		console.log('chrome.storage.sync changed', allChanges);
 		let changes = allChanges[key];
-		if (changes) {
+		if(changes){
 			payload(changes.newValue, changes.oldValue);
 		}
 	});
@@ -177,7 +177,7 @@ export const resolveCommunityId = (txt) => {
 
 export const resolveUserId = (txt) => {
 	txt = ` ${txt} `;
-	let ms = /\W(u_[A-Za-z0-9_]{24})/.exec(txt);
+	let ms = /\W(u_[A-Za-z0-9_]{20,30})/.exec(txt);
 	return ms ? ms[1] : null;
 }
 
@@ -187,7 +187,7 @@ export const resolveUrls = (txt) => {
 	txt = ' ' + txt + ' ';
 	txt.replace(/(https|http)(:\/\/.*?)[\s\n]/ig, ms => {
 		ms = ms.trim();
-		if (!tmp[ms]) {
+		if(!tmp[ms]){
 			urls.push(ms.trim());
 			tmp[ms] = true;
 		}
@@ -228,19 +228,21 @@ export const buildAppAdminEntry = (appId, title = "店铺管理台", jump = '') 
  * @param {String} appId
  * @param {String} userId
  * @param {String} jump
+ * @param {String} title
  * @returns {String}
  */
-export const buildUserH5Entry = (appId, userId, jump = '') => {
+export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
 	let jumpParam = encodeBase64(JSON.stringify({
 		type: 'UserH5',
 		url: jump,
 		appId: appId,
 		userId: userId
 	}));
+	let ti = title || "H5登录："+jump.substring(0, 10);
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" value="登录H5端" class="btn btn-danger btn-h5-system"/>
+                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump)}" value="${escapeAttr(ti)}" title="${escapeHtml(ti)}" class="btn btn-danger btn-h5-system"/>
             </form>`;
 };
 
@@ -257,7 +259,7 @@ export const buildAppPCUrl = appId => {
 };
 
 export const buildCommunityPCUrl = (appId, commId) => {
-	return buildLink(`https://quanzi.xiaoe-tech.com/${commId}/feed_list?app_id=${appId}`, '', );
+	return buildLink(`https://quanzi.xiaoe-tech.com/${commId}/feed_list?app_id=${appId}`, '',);
 };
 
 export const buildCommunityH5Url = (appId, commId) => {
@@ -269,59 +271,51 @@ export const renderTextResult = (txt, hieNoResult = false) => {
 	let appId = resolveAppId(txt);
 	let communityId = resolveCommunityId(txt);
 	let userId = resolveUserId(txt);
-	let fromBase64 = decodeBase64(txt);
-	let links = resolveUrls(txt);
-	let opHtml = '';
-	let infoHtml = '';
 
-	if (links.length) {
+	let fromBase64 = decodeBase64(txt),
+		links = resolveUrls(txt),
+		opHtml = '',
+		infoHtml = '';
+
+	if(links.length){
 		links.forEach((link, idx) => {
 			infoHtml += `<li><label>链接${links.length > 1 ? idx + 1 : ''}：</label><span>${buildLink(link)}</span></li>`;
 		});
 	}
 
-	if (appId) {
-		opHtml += buildAppAdminEntry(appId, '登录管理台', 'https://admin.xiaoe-tech.com/');
-		if (userId) {
-			opHtml += buildAppAdminEntry(appId, '管理台用户详情', `https://admin.xiaoe-tech.com/t/user_manage/index#/user_list/userDetails/openRecords?userId=${userId}`);
-		}
-		if (communityId) {
-			opHtml += buildAppAdminEntry(appId, '管理台圈子详情', `https://admin.xiaoe-tech.com/smallCommunity/communityList#/community_manage/content_settings/feed_list?communityId=${communityId}&type=manage`);
-		}
-	}
+	//管理端入口
+	appId && (opHtml += buildAppAdminEntry(appId, '登B端', 'https://admin.xiaoe-tech.com/'));
+	appId && userId && (opHtml += buildAppAdminEntry(appId, 'B端用户详情', `https://admin.xiaoe-tech.com/t/user_manage/index#/user_list/userDetails/openRecords?userId=${userId}`));
+	appId && communityId && (opHtml += buildAppAdminEntry(appId, 'B端圈子详情', `https://admin.xiaoe-tech.com/smallCommunity/communityList#/community_manage/content_settings/feed_list?communityId=${communityId}&type=manage`));
 
-	if (appId) {
-		infoHtml += `<li><label>店铺ID：</label><span>${appId}</span></li>`;
-		infoHtml += `<li><label>店铺PC链接：</label><span>${buildAppPCUrl(appId)}</span></li>`;
-		infoHtml += `<li><label>店铺H5链接：</label><span>${buildAppH5Url(appId)}</span></li>`;
-	}
-	if (userId) {
-		infoHtml += `<li><label>用户ID：</label><span>${userId}</span></li>`;
-	}
-	if (communityId) {
-		infoHtml += `<li><label>圈子ID：</label><span>${communityId}</span></li>`;
-		infoHtml += appId ? `<li><label>圈子H5链接：</label><span>${buildCommunityH5Url(appId, communityId)}</span></li>` : '';
-		infoHtml += appId ? `<li><label>圈子PC链接：</label><span>${buildCommunityPCUrl(appId, communityId)}</span></li>` : '';
-	}
+	//C端链接
+	appId && (infoHtml += `<li><label>店铺ID：</label><span>${appId}</span></li>`);
+	appId && (infoHtml += `<li><label>店铺PC链接：</label><span>${buildAppPCUrl(appId)}</span></li>`);
+	appId && (infoHtml += `<li><label>店铺H5链接：</label><span>${buildAppH5Url(appId)}</span></li>`);
+	userId && (infoHtml += `<li><label>用户ID：</label><span>${userId}</span></li>`);
+	communityId && (infoHtml += `<li><label>圈子ID：</label><span>${communityId}</span></li>`);
+	appId && (infoHtml += `<li><label>圈子H5链接：</label><span>${buildCommunityH5Url(appId, communityId)}</span></li>`);
+	appId && (infoHtml += `<li><label>圈子PC链接：</label><span>${buildCommunityPCUrl(appId, communityId)}</span></li>`);
 
-	if (appId && userId) {
-		if (links.length) {
-			links.forEach(link => {
-				opHtml += buildUserH5Entry(appId, userId, isH5Link(link) ? link : '');
-			});
-		} else {
-			opHtml += buildUserH5Entry(appId, userId);
-		}
-	}
+	//c端替身登录
+	appId && userId && (links.length ? links : []).forEach(link => {
+		opHtml += buildUserH5Entry(appId, userId, isH5Link(link) ? link : '');
+	});
+	appId && userId && !links.length && (
+		opHtml += buildUserH5Entry(appId, userId, '', 'H5登录')
+	);
+	appId && userId && communityId && (
+		opHtml += buildUserH5Entry(appId, userId, buildCommunityH5Url(appId, communityId), 'H5圈子登录')
+	);
 
-	if (fromBase64) {
-		infoHtml += `<li><label>Base64解码：</label><span>${fromBase64}</span></li>`;
-	}
-	if (!txt) {
+	//其他
+	fromBase64 && (infoHtml += `<li><label>Base64解码：</label><span>${fromBase64}</span></li>`);
+
+	if(!txt){
 		return '';
-	} else if (!infoHtml.length && !opHtml.length) {
+	}else if(!infoHtml.length && !opHtml.length){
 		return hieNoResult ? '' : `<p style="padding:1em 0">不知道这里面有什么东西···</p>`;
-	} else {
+	}else{
 		return `<ul class="info-list">${infoHtml}</ul>` + opHtml;
 	}
 }
