@@ -32,6 +32,10 @@ export const escapeAttr = (s, preserveCR = '') => {
 		.replace(/[\r\n]/g, preserveCR);
 }
 
+export const http2s = (url)=>{
+	return url.replace(/^http:/i, 'https:');
+}
+
 export const escapeHtml = str => {
 	return str
 		.replace(/&/g, "&amp;")

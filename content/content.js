@@ -1,3 +1,5 @@
+import {http2s} from "../common/function.js";
+
 const HOST_ATTR_KEY = 'data-host';
 
 /**
@@ -30,7 +32,8 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		createHtml,
 		domContained,
 		jumpTo,
-		layDomInView
+		layDomInView,
+		http2s
 	} = await import(chrome.runtime.getURL('common/function.js'));
 
 	const CSS_MAP = {
@@ -308,7 +311,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			let timer = null;
 			let html = `<hr/>
 						1.请打开开发者工具(F12)，切换到设备模拟模式<br/>
-						2.访问链接 <a href="${obj.data.howtodo.onekeycosplay}">${obj.data.howtodo.onekeycosplay}</a> <input type="button" value="停止(${(tm / 1000).toFixed(0)}s)" id="xe-run-countdown">
+						2.访问链接 <a href="${http2s(obj.data.howtodo.onekeycosplay)}">${http2s(obj.data.howtodo.onekeycosplay)}</a> <input type="button" value="停止(${(tm / 1000).toFixed(0)}s)" id="xe-run-countdown">
 			`;
 			let div = document.createElement('div');
 			div.innerHTML = html;
