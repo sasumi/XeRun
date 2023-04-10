@@ -18,7 +18,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		inCommonOption,
 		getCommonOptionSetting,
 		getChromeStorageSync,
-		setBackgroundLocalStorange,
+		setBackgroundLocalStorage,
 		getBackgroundLocalStorage,
 		removeBackgroundLocalStorage,
 		buildUserH5Entry,
@@ -301,7 +301,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		let jumpParam = search.get('jumpParam');
 		debugger;
 		if (obj.code === 3) {
-			jumpParam && setBackgroundLocalStorange(SUPER_JUMP_KEY, jumpParam);
+			jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
 			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
@@ -358,7 +358,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		let obj = JSON.parse(jsonStr);
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
-		jumpParam && setBackgroundLocalStorange(SUPER_JUMP_KEY, jumpParam);
+		jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
 		if (obj.code === 3) {
 			createHtml(`
 				<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>

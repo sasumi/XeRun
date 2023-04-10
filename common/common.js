@@ -96,8 +96,8 @@ export const getPasteContent = () => {
 	return input.value;
 }
 
-export const setBackgroundLocalStorange = (key, data) => {
-	console.log('setBackgroundLocalStorange', key, data);
+export const setBackgroundLocalStorage = (key, data) => {
+	console.log('setBackgroundLocalStorage', key, data);
 	return new Promise(resolve => {
 		chrome.runtime.sendMessage({
 			action: 'setLocal',
