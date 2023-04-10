@@ -55,7 +55,6 @@ dropFile.addEventListener('change', e => {
     }
 });
 dropFile.addEventListener('drop', e=>{
-    debugger;
     console.log(e);
     dropZoneDom.classList.remove('dragover');
     e.preventDefault();

@@ -299,7 +299,6 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		let obj = JSON.parse(jsonStr);
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
-		debugger;
 		if (obj.code === 3) {
 			jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
 			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
@@ -307,11 +306,11 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		}
 		if (obj.code === 0 && obj.data.howtodo) {
 			removeBackgroundLocalStorage(SUPER_JUMP_KEY);
-			let tm = 5000;
+			let countdown_sec = 5000;
 			let timer = null;
 			let html = `<hr/>
 						1.请打开开发者工具(F12)，切换到设备模拟模式<br/>
-						2.访问链接 <a href="${http2s(obj.data.howtodo.onekeycosplay)}">${http2s(obj.data.howtodo.onekeycosplay)}</a> <input type="button" value="停止(${(tm / 1000).toFixed(0)}s)" id="xe-run-countdown">
+						2.访问链接 <a href="${http2s(obj.data.howtodo.onekeycosplay)}">${http2s(obj.data.howtodo.onekeycosplay)}</a> <input type="button" value="停止(${(countdown_sec / 1000).toFixed(0)}s)" id="xe-run-countdown">
 			`;
 			let div = document.createElement('div');
 			div.innerHTML = html;
@@ -348,7 +347,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 					}
 				}
 			};
-			countDown(tm);
+			countDown(countdown_sec);
 		}
 	}
 
