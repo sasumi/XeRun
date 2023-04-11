@@ -1,5 +1,3 @@
-import {http2s} from "../common/function.js";
-
 const HOST_ATTR_KEY = 'data-host';
 
 /**
@@ -308,12 +306,14 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			removeBackgroundLocalStorage(SUPER_JUMP_KEY);
 			let countdown_sec = 5000;
 			let timer = null;
-			let html = `<hr/>
-						1.请打开开发者工具(F12)，切换到设备模拟模式<br/>
-						2.访问链接 <a href="${http2s(obj.data.howtodo.onekeycosplay)}">${http2s(obj.data.howtodo.onekeycosplay)}</a> <input type="button" value="停止(${(countdown_sec / 1000).toFixed(0)}s)" id="xe-run-countdown">
-			`;
 			let div = document.createElement('div');
-			div.innerHTML = html;
+			div.innerHTML = `<hr/>
+				<p style="font-size:2rem; padding:2rem 1rem;">
+					1.请打开开发者工具(F12)，切换到设备模拟模式 <br><br>
+					2.访问链接 <a href="${http2s(obj.data.howtodo.onekeycosplay)}">${http2s(obj.data.howtodo.onekeycosplay)}</a> <br><br> 
+					<input type="button" value="停止(${(countdown_sec / 1000).toFixed(0)}s)" id="xe-run-countdown" style="font-size:2rem;">
+				</p>
+			`;
 			document.body.appendChild(div);
 
 			let iframe = document.getElementById('auth_iframe');
