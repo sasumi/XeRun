@@ -331,17 +331,16 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 						countDown(tm)
 					}, 100);
 				} else {
-					let cosplayUrl = obj.data.howtodo.onekeycosplay;
+					let cosplayUrl = http2s(obj.data.howtodo.onekeycosplay);
 					if (jumpParam) {
 						let jumpData = JSON.parse(decodeBase64(jumpParam));
+						if(!jumpData){
+							console.info('jump param error');
+							document.location.href = cosplayUrl;
+							return;
+						}
 						//先登录管理台，再在当前tab打开指定连接
-						chrome.runtime.sendMessage({
-							action: 'openTabOnce',
-							url: cosplayUrl
-						}, function (response) {
-							location.href = jumpData.url;
-							console.log(response);
-						});
+						location.href = jumpData.url;
 					} else {
 						document.location.href = cosplayUrl;
 					}

@@ -10,11 +10,6 @@ let resultDom = document.querySelector('.result');
 let storageKey = 'string';
 let inputFromStorage = false;
 
-//闯关打卡
-const resolveBreakThroughClock = txt => {
-    // https://appnhv5pqzm8966.h5.xiaoeknow.com/xiaoe_clock/breakthrough_clock/ac_6355631302cb6_f20vYUuS#/breakthroughClock
-};
-
 textDom.addEventListener('input', e => {
     let txt = textDom.value;
     resultDom.innerHTML = renderTextResult(txt);
