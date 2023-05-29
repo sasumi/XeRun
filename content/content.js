@@ -122,6 +122,19 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		}, 100);
 	});
 
+	/**
+	 * 由于新版本的edge会把返回的json格式化，需要做额外检测。
+	 */
+	const readJSON = ()=>{
+		let jsonStr = '';
+		if(document.body.getAttribute('data-code-mirror')){
+			jsonStr = document.querySelector('div[hidden=true]').innerHTML;
+		} else {
+			jsonStr = document.body.innerText.replace(/\n/g, '');
+		}
+		return JSON.parse(jsonStr);
+	}
+
 	const checkNavFit = () => {
 		return document.querySelector('td div[class*="table-title-"][class*="current-"]');
 	}
@@ -293,8 +306,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	//登录H5链接
 	if (location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0) {
-		let jsonStr = document.body.innerText;
-		let obj = JSON.parse(jsonStr);
+		let obj = readJSON();
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
 		if (obj.code === 3) {
@@ -352,8 +364,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	//登录B端管理台
 	if (location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0) {
-		let jsonStr = document.body.innerText;
-		let obj = JSON.parse(jsonStr);
+		let obj = readJSON();
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
 		jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
@@ -451,25 +462,30 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 	}
 
-	document.body.addEventListener('click', e=>{
-		if(!LINK_CLICK_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length || e.target.href.indexOf('blob:') === 0){
-			return;
+	document.body.addEventListener('click', e => {
+		try{
+			if(!LINK_CLICK_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length || e.target.href.indexOf('blob:') === 0){
+				return;
+			}
+			let href = e.target.href;
+			let link = document.createElement('a');
+			link.href = href;
+			if(link.hostname === document.location.hostname){
+				console.log('同一个host不开新窗口');
+				return;
+			}
+			let targetWinId = getTargetWindowId();
+			console.log('start do open win', href, targetWinId);
+			openNewWindowBackground(targetWinId, href).then(tId => {
+				console.log('open win success', tId);
+				setTargetWindowId(tId);
+			});
+			e.preventDefault();
+			return false;
+		}catch(err){
+			console.error(err);
+			return true;
 		}
-		let href = e.target.href;
-		let link = document.createElement('a');
-		link.href = href;
-		if(link.hostname === document.location.hostname){
-			console.log('同一个host不开新窗口');
-			return;
-		}
-		let targetWinId = getTargetWindowId();
-		console.log('start do open win', href, targetWinId);
-		openNewWindowBackground(targetWinId, href).then(tId=>{
-			console.log('open win succ', tId);
-			setTargetWindowId(tId);
-		});
-		e.preventDefault();
-		return false;
 	});
 
 	document.body.addEventListener('auxclick', e=>{
