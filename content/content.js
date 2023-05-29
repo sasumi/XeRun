@@ -31,6 +31,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		domContained,
 		jumpTo,
 		layDomInView,
+		unescapeHtml,
 		http2s
 	} = await import(chrome.runtime.getURL('common/function.js'));
 
@@ -378,7 +379,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			}, 500);
 		}
 		if (obj.code === 0) {
-			location.href = obj.data.redirect_to; //成功，跳转到指定链接（携带鉴权信息）
+			location.href = unescapeHtml(obj.data.redirect_to); //成功，跳转到指定链接（携带鉴权信息）
 		}
 	}
 

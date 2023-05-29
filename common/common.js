@@ -217,7 +217,7 @@ export const buildAppAdminEntry = (appId, title = "店铺管理台", jump = '') 
 	return `<form action="https://super.xiaoe-tech.com/new/saveLoginLog?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="context_reason" value="1"/>
-                <input type="hidden" name="context_resource_id" value="0"/>
+                <input type="hidden" name="context_resource_id" value=""/>
                 <input type="hidden" name="context_resource_type" value="4"/>
                 <input type="submit" value="${title}" class="btn btn-danger btn-admin-system"/>
             </form>`;
