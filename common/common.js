@@ -234,7 +234,7 @@ export const buildAppAdminEntry = (appId, title = "店铺管理台", jump = '') 
                 <input type="hidden" name="context_reason" value="1"/>
                 <input type="hidden" name="context_resource_id" value=""/>
                 <input type="hidden" name="context_resource_type" value="4"/>
-                <input type="submit" value="${title}" class="btn btn-danger btn-admin-system"/>
+                <input type="submit" value="${title}" class="btn btn-admin-system"/>
             </form>`;
 };
 
@@ -253,11 +253,11 @@ export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
 		appId: appId,
 		userId: userId
 	}));
-	let ti = title || "H5登录：" + jump.substring(0, 10);
+	let ti = title || "H5店铺" + (jump.length ? '：'+jump.substring(0, 10) :'');
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump)}" value="${escapeAttr(ti)}" title="${escapeHtml(ti)}" class="btn btn-danger btn-h5-system"/>
+                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump)}" value="${escapeAttr(ti)}" title="${escapeHtml(ti)}" class="btn btn-h5-system"/>
             </form>`;
 };
 
@@ -269,7 +269,7 @@ export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
  * @return {`<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${string}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${string}"/>
                 <input type="hidden" name="user_id" value="${string}"/>
-                <input type="submit" title="${string}" value="${string}" title="${string}" class="btn btn-danger btn-h5-system"/>
+                <input type="submit" title="${string}" value="${string}" title="${string}" class="btn btn-h5-system"/>
             </form>`}
  */
 export const buildUserPCCommunityEntry = (appId, userId, communityId = '') => {
@@ -280,11 +280,11 @@ export const buildUserPCCommunityEntry = (appId, userId, communityId = '') => {
 		appId: appId,
 		userId: userId
 	}));
-	let title = "PC圈子登录";
+	let title = "PC圈子";
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump_url)}" value="${escapeAttr(title)}" title="${escapeHtml(title)}" class="btn btn-danger btn-h5-system"/>
+                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump_url)}" value="${escapeAttr(title)}" title="${escapeHtml(title)}" class="btn btn-pc-system"/>
             </form>`;
 }
 
@@ -348,12 +348,12 @@ export const renderTextResult = (txt, hieNoResult = false) => {
 		opHtml += buildUserH5Entry(appId, userId, isH5Link(link) ? link : '');
 	});
 	appId && userId && !links.length && (
-		opHtml += buildUserH5Entry(appId, userId, '', 'H5登录')
+		opHtml += buildUserH5Entry(appId, userId, '', 'H5')
 	);
 	appId && userId && communityId && (
-		opHtml += buildUserH5Entry(appId, userId, buildCommunityH5Link(appId, communityId), 'H5圈子登录')
+		opHtml += buildUserH5Entry(appId, userId, buildCommunityH5Link(appId, communityId), 'H5圈子')
 	);
-	appId && userId && (
+	appId && userId && communityId && (
 		opHtml += buildUserPCCommunityEntry(appId, userId, communityId)
 	)
 

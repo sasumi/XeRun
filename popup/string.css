@@ -6,3 +6,7 @@ textarea {display: block; box-sizing: border-box; width:100%; height:100px; max-
 .info-list>li>label {color:gray; user-select: none; display:table-cell; padding:0.25em 0}
 .info-list>li>span {vertical-align: top; overflow: hidden; word-break: break-all; display:table-cell; padding:0.25em 0}
 .info-list>li a {word-break: break-all; text-decoration: none;}
+
+.btn-admin-system {border-color:orange; color:orange; background-color:rgb(255, 244, 227);}
+.btn-h5-system {border-color:green; color:green; background-color:#dcfcdc;}
+.btn-pc-system {border-color:#267ef0; color:#267ef0; background-color:#d7e9ff;}
