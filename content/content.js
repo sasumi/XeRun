@@ -20,6 +20,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		getBackgroundLocalStorage,
 		removeBackgroundLocalStorage,
 		buildUserH5Entry,
+		buildCommunityPCLink,
 		buildAppAdminEntry
 	} = await import(chrome.runtime.getURL('common/common.js'));
 
@@ -49,16 +50,23 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		sessionStorage.setItem(TARGET_WINDOW_ID_SESS_KEY, winId);
 	}
 
-	const setChromeCookie = (param, targetWinId = null)=>{
-		return new Promise(resolve => {
+	const setChromeCookies = (params)=>{
+		const expirationDate = (parseInt(new Date().getTime() / 1000, 10) + 86400);
+		for(let k in params){
 			chrome.runtime.sendMessage({
 				action: 'setCookie',
-				param: param,
-				windowId: targetWinId
+				param: {
+					url: window.location.href,
+					name: k,
+					value: params[k],
+					path: '/',
+					expirationDate: expirationDate
+				},
+				windowId: null
 			}, function(msg){
-				resolve(msg);
+				console.log(msg);
 			});
-		});
+		}
 	}
 
 	const openNewWindowBackground = (targetWinId = null, href) => {
@@ -349,23 +357,49 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		let obj = readJSON();
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
+		let jumpData = jumpParam ? JSON.parse(decodeBase64(jumpParam)) : {};
 		if(obj.code === 3){
 			jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
 			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
 		if(obj.code === 0 && obj.data.howtodo){
+			let ko_token = obj.data.token.value;
+			let ko_user_id = obj.data.user.id;
+			let ko_app_id = obj.data.user.app_id;
+			let cosplay_url = http2s(obj.data.howtodo.onekeycosplay);
 			removeBackgroundLocalStorage(SUPER_JUMP_KEY);
 			let countdown_sec = 5000;
 			let timer = null;
 			let div = document.createElement('div');
-			div.innerHTML = `<hr/>
+			let html = `<hr/>
 				<p style="font-size:2rem; padding:2rem 1rem;">
 					1.请打开开发者工具(F12)，切换到设备模拟模式 <br><br>
-					2.访问链接 <a href="${http2s(obj.data.howtodo.onekeycosplay)}">${http2s(obj.data.howtodo.onekeycosplay)}</a> <br><br> 
+					2.访问链接 <a href="${cosplay_url}">${cosplay_url}</a> <br><br> 
 					<input type="button" value="停止(${(countdown_sec / 1000).toFixed(0)}s)" id="xe-run-countdown" style="font-size:2rem;">
-				</p>
-			`;
+				</p>`;
+			if(jumpData.type === 'PCComm'){
+				let link = buildCommunityPCLink(ko_app_id);
+				html = `<hr/>
+					<div>在打开并登录圈子PC版本 (${link}) ，复制以下命令在控制台中执行即可：</div>
+					<div>
+<textarea style="display:block; min-height:200px; width:100%; box-sizing:border-box; color:green; padding:0.5em; margin:1em 0;">
+function sc(cookieName, cookieValue, expiryDate) {
+  var d = new Date();
+  d.setTime(d.getTime() + (86400*1000));
+  var expires = "expires="+ d.toUTCString();
+  document.cookie = cookieName + "=" + cookieValue + "; " + expires + "; path=/";
+}
+sc('pc_token_${ko_app_id}', '${ko_token}');
+sc('user_id_${ko_app_id}', '${ko_app_id}');
+sc('app_id', '${ko_app_id}');
+</textarea>
+</div>
+<input type="button" value="停止(${(countdown_sec / 1000).toFixed(0)}s)" id="xe-run-countdown" style="font-size:2rem;">
+`;
+			}
+
+			div.innerHTML = html;
 			document.body.appendChild(div);
 
 			let cdBtn = document.getElementById('xe-run-countdown');
@@ -383,27 +417,23 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 					}, 100);
 					return;
 				}
-				let cosplayUrl = http2s(obj.data.howtodo.onekeycosplay);
-				let jumpData = jumpParam ? JSON.parse(decodeBase64(jumpParam)) : {};
 				console.log('jumpData', jumpData);
 				if(jumpData && jumpData.url){
 					//附加上需要登录的token 参数，并打开需要跳转的窗口
-					console.log('open cosplay in iframe', cosplayUrl);
-					openInIframe(cosplayUrl, () => {
-						console.log('cosplayURL加载完成（未必触发）');
-					});
+					console.log('open cosplay in iframe', cosplay_url);
+					openInIframe(cosplay_url, () => {console.log('cosplayURL加载完成（未必触发）');});
 					setTimeout(() => {
 						let jumpUrl = patchUrl(jumpData.url, {
-							ko_token: obj.data.token.value,
-							ko_user_id: obj.data.user.id,
-							ko_app_id: obj.data.user.app_id
+							ko_token: ko_token,
+							ko_user_id: ko_user_id,
+							ko_app_id: ko_app_id
 						});
 						console.log('jump to jumpUrl', jumpUrl);
 						document.location.href = jumpUrl;
 					}, 1000);
 					return;
 				}
-				document.location.href = cosplayUrl;
+				document.location.href = cosplay_url;
 			};
 			countDown(countdown_sec);
 		}
@@ -413,39 +443,19 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	if(location.href.indexOf('https://quanzi.xiaoe-tech.com') >= 0 &&
 		// location.href.indexOf('feed_list') >0 &&
 		location.href.indexOf('ko_token=') > 0){
-		const expireSecond = (parseInt(new Date().getTime() / 1000, 10) + 86400);
 		let urlParam = new URLSearchParams(location.search);
 		let app_id = urlParam.get('ko_app_id');
 		let user_id = urlParam.get('ko_user_id');
 		let token = urlParam.get('ko_token');
-		let url = location.href;
-		setChromeCookie({
-			url: url,
-			name: `pc_token_${app_id}`,
-			value: token,
-			path: '/',
-			expirationDate: expireSecond
-		}).then(msg => {
-			console.log(msg);
+		let com_id = urlParam.get('ko_com_id');
+		setChromeCookies({
+			[`pc_token_${app_id}`]: token,
+			[`user_id_${app_id}`]: app_id,
+			app_id: app_id
 		});
-		setChromeCookie({
-			url,
-			name: 'app_id',
-			value: app_id,
-			path: '/',
-			expirationDate: expireSecond
-		}).then(msg => {
-			console.log(msg);
-		});
-		setChromeCookie({
-			url,
-			name: `user_id_${app_id}`,
-			value: app_id,
-			path: '/',
-			expirationDate: expireSecond
-		}).then(msg => {
-			console.log(msg);
-		});
+		if(com_id){
+			setChromeCookies({activity_id: `${app_id}-${com_id}`});
+		}
 	}
 
 	//登录B端管理台

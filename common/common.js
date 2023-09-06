@@ -98,6 +98,9 @@ export const getPasteContent = () => {
 
 export const setBackgroundLocalStorage = (key, data) => {
 	console.log('setBackgroundLocalStorage', key, data);
+	if(!chrome.runtime.id){
+		return;
+	}
 	return new Promise(resolve => {
 		chrome.runtime.sendMessage({
 			action: 'setLocal',
@@ -112,6 +115,9 @@ export const setBackgroundLocalStorage = (key, data) => {
 
 export const getBackgroundLocalStorage = (key) => {
 	console.log('getBackgroundLocalStorage');
+	if(!chrome.runtime.id){
+		return;
+	}
 	return new Promise(resolve => {
 		chrome.runtime.sendMessage({
 			action: 'getLocal',
@@ -138,6 +144,9 @@ export const removeBackgroundLocalStorage = (key) => {
 
 export const getChromeStorageSync = (key, defaultValue) => {
 	return new Promise((resolve) => {
+		if(!chrome.runtime.id){
+			return;
+		}
 		chrome.storage.sync.get([key], obj => {
 			resolve(obj[key] === undefined ? defaultValue : obj[key]);
 		});
@@ -145,6 +154,9 @@ export const getChromeStorageSync = (key, defaultValue) => {
 };
 
 export const onChromeStorageSyncChange = (key, payload) => {
+	if(!chrome.runtime.id){
+		return;
+	}
 	chrome.storage.sync.addListen((allChanges, namespace) => {
 		console.log('chrome.storage.sync changed', allChanges);
 		let changes = allChanges[key];
@@ -155,6 +167,9 @@ export const onChromeStorageSyncChange = (key, payload) => {
 };
 
 export const setChromeStorageSync = (key, data) => {
+	if(!chrome.runtime.id){
+		return;
+	}
 	return new Promise(resolve => {
 		console.log('set chrome storage', key, data);
 		chrome.storage.sync.set({

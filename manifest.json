@@ -30,7 +30,6 @@
 		"clipboardWrite"
 	],
 	"optional_permissions": [
-		"unlimitedStorage"
 	],
 	"host_permissions": [
 		"*://*/*"
