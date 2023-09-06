@@ -21,12 +21,19 @@
 		"128": "icon.png"
 	},
 	"permissions": [
+		"cookies",
 		"activeTab",
 		"scripting",
 		"tabs",
 		"storage",
 		"clipboardRead",
 		"clipboardWrite"
+	],
+	"optional_permissions": [
+		"unlimitedStorage"
+	],
+	"host_permissions": [
+		"*://*/*"
 	],
 	"background": {
 		"service_worker": "background/background.js"

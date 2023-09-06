@@ -109,6 +109,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				sendResponse();
 			});
 			return true;
+
+		case 'setCookie':
+			chrome.cookies.set(message.param);
+			return true;
+
 		default:
 			throw "action no support yet:" + message.action;
 	}

@@ -22,6 +22,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		buildUserH5Entry,
 		buildAppAdminEntry
 	} = await import(chrome.runtime.getURL('common/common.js'));
+
 	const {
 		patchCss,
 		hide,
@@ -32,8 +33,46 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		jumpTo,
 		layDomInView,
 		unescapeHtml,
-		http2s
+		http2s,
+		openInIframe,
+		patchUrl
 	} = await import(chrome.runtime.getURL('common/function.js'));
+
+	let TARGET_WINDOW_ID_SESS_KEY = 'TARGET_WINDOW_ID_SESS_KEY';
+	const getTargetWindowId = () => {
+		let winId = sessionStorage.getItem(TARGET_WINDOW_ID_SESS_KEY);
+		winId = parseInt(winId);
+		return winId || null;
+	};
+
+	const setTargetWindowId = (winId) => {
+		sessionStorage.setItem(TARGET_WINDOW_ID_SESS_KEY, winId);
+	}
+
+	const setChromeCookie = (param, targetWinId = null)=>{
+		return new Promise(resolve => {
+			chrome.runtime.sendMessage({
+				action: 'setCookie',
+				param: param,
+				windowId: targetWinId
+			}, function(msg){
+				resolve(msg);
+			});
+		});
+	}
+
+	const openNewWindowBackground = (targetWinId = null, href) => {
+		return new Promise(resolve => {
+			chrome.runtime.sendMessage({
+				action: 'openNewWindowBackground',
+				url: href,
+				windowId: targetWinId
+			}, function(tagWinId){
+				resolve(tagWinId);
+			});
+		});
+	}
+
 
 	const CSS_MAP = {
 		'coding.showFullContent': `
@@ -72,23 +111,23 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	patchCss(`html {filter:none !important;}`);
 
 	const toggleCss = (id, stateOn) => {
-		if (!CSS_MAP[id]) {
+		if(!CSS_MAP[id]){
 			return;
 		}
 		let style = document.getElementById(id);
-		if (!style) {
+		if(!style){
 			style = patchCss(CSS_MAP[id], id);
 		}
 		style.setAttribute('type', stateOn ? 'text/css' : 'text');
 	}
 
 	//init read config in storage
-	for (let groupTitle in COMMON_OPTIONS) {
+	for(let groupTitle in COMMON_OPTIONS){
 		COMMON_OPTIONS[groupTitle].forEach(({
-			title,
-			key,
-			defaultValue
-		}) => {
+			                                    title,
+			                                    key,
+			                                    defaultValue
+		                                    }) => {
 			getChromeStorageSync(key, defaultValue).then(value => {
 				inCommonOption(key) && toggleCss(key, value);
 			});
@@ -101,8 +140,8 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	//listen storage change event
 	chrome.storage.onChanged.addListener((allChanges, namespace) => {
 		console.log('chrome.storage.sync changed', allChanges);
-		for (let key in allChanges) {
-			if (key === 'coding.quickNav') {
+		for(let key in allChanges){
+			if(key === 'coding.quickNav'){
 				quickNavStateOn = allChanges[key].newValue;
 				toggleQuickNavEntry(quickNavStateOn);
 			}
@@ -112,9 +151,9 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	document.body.addEventListener('DOMSubtreeModified', e => {
 		setTimeout(() => {
-			if (!checkNavFit()) {
+			if(!checkNavFit()){
 				hideQuickNavEntry();
-			} else {
+			}else{
 				getCommonOptionSetting('coding.quickNav').then(ok => {
 					quickNavStateOn = ok;
 					toggleQuickNavEntry(quickNavStateOn)
@@ -126,11 +165,11 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	/**
 	 * 由于新版本的edge会把返回的json格式化，需要做额外检测。
 	 */
-	const readJSON = ()=>{
+	const readJSON = () => {
 		let jsonStr = '';
 		if(document.body.getAttribute('data-code-mirror')){
 			jsonStr = document.querySelector('div[hidden=true]').innerHTML;
-		} else {
+		}else{
 			jsonStr = document.body.innerText.replace(/\n/g, '');
 		}
 		return JSON.parse(jsonStr);
@@ -142,15 +181,15 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	const navToNext = (toPrevious = false) => {
 		let currentItem = document.querySelector('td div[class*="table-title-"][class*="current-"]');
-		if (currentItem) {
+		if(currentItem){
 			let tr = closest(currentItem, 'tr');
 			let newTr = toPrevious ? tr.previousElementSibling : tr.nextElementSibling;
-			if (!newTr) {
+			if(!newTr){
 				console.log('到尽头了');
 				return;
 			}
 			let nextAnchor = newTr.querySelector('div[class*="table-title-"]');
-			if (nextAnchor) {
+			if(nextAnchor){
 				nextAnchor.click();
 				return;
 			}
@@ -160,7 +199,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	let entryDom = null;
 	const toggleQuickNavEntry = (turnOn) => {
-		if (!entryDom) {
+		if(!entryDom){
 			entryDom = document.createElement('div');
 			entryDom.style.display = 'none';
 			entryDom.className = 'xe-run-quick-nav';
@@ -173,31 +212,31 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 				navToNext(false);
 			});
 		}
-		if (turnOn && checkNavFit()) {
+		if(turnOn && checkNavFit()){
 			entryDom.style.display = '';
-		} else {
+		}else{
 			hideQuickNavEntry();
 		}
 	};
 
 	const hideQuickNavEntry = () => {
-		if (entryDom) {
+		if(entryDom){
 			entryDom.style.display = 'none';
 		}
 	}
 
-	if (location.host === 'xiaoe.coding.net') {
+	if(location.host === 'xiaoe.coding.net'){
 		document.body.addEventListener('keyup', e => {
-			if (!quickNavStateOn) {
+			if(!quickNavStateOn){
 				return;
 			}
 			console.log('coding nav key up');
-			if (e.target.matches('input') || e.target.matches('textarea')) {
+			if(e.target.matches('input') || e.target.matches('textarea')){
 				return;
 			}
-			if (e.key === 'ArrowLeft') {
+			if(e.key === 'ArrowLeft'){
 				navToNext(true);
-			} else if (e.key === 'ArrowRight') {
+			}else if(e.key === 'ArrowRight'){
 				navToNext(false);
 			}
 		});
@@ -208,7 +247,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 	}
 
-	if (location.host === 'xiaoe.coding.net' || location.host === 'www.tapd.cn' || location.host.indexOf('xiaoe-tech.com') > 0) {
+	if(location.host === 'xiaoe.coding.net' || location.host === 'www.tapd.cn' || location.host.indexOf('xiaoe-tech.com') > 0){
 		let panel = null;
 		patchCss(`
 			.xe-run-panel {
@@ -234,9 +273,9 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		`, 'xe-run-panel');
 
 		chrome.storage.onChanged.addListener((allChanges, namespace) => {
-			for (let key in allChanges) {
-				if (key === 'common.contentResolve') {
-					if (!allChanges[key].newValue) {
+			for(let key in allChanges){
+				if(key === 'common.contentResolve'){
+					if(!allChanges[key].newValue){
 						hide(panel);
 					}
 				}
@@ -244,7 +283,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 
 		document.addEventListener('mousedown', e => {
-			if (panel && domContained(panel, e.target)) {
+			if(panel && domContained(panel, e.target)){
 				return;
 			}
 			hide(panel);
@@ -252,26 +291,26 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 		document.addEventListener('mouseup', e => {
 			console.log('mouse up');
-			if (panel && domContained(panel, e.target)) {
+			if(panel && domContained(panel, e.target)){
 				return;
 			}
 			hide(panel);
 			setTimeout(() => {
 				getCommonOptionSetting('common.contentResolve').then(ok => {
-					if (!ok) {
+					if(!ok){
 						return;
 					}
 					let selection = document.getSelection();
 					let selected_text = selection.toString().trim();
-					if (!selected_text.length) {
+					if(!selected_text.length){
 						return;
 					}
 					let html = renderTextResult(selected_text, true);
-					if (!html) {
+					if(!html){
 						hide(panel);
 						return;
 					}
-					if (!panel) {
+					if(!panel){
 						panel = document.createElement('div');
 						document.body.appendChild(panel);
 						panel.classList.add('xe-run-panel');
@@ -280,12 +319,12 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 						panel.style.top = '0px';
 						panel.style.display = 'none';
 						panel.addEventListener('click', e => {
-							if (e.target.id === 'xe-run-panel-close') {
+							if(e.target.id === 'xe-run-panel-close'){
 								hide(panel);
 							}
 						});
 						document.body.addEventListener('keyup', e => {
-							if (e.key === 'Escape') {
+							if(e.key === 'Escape'){
 								hide(panel);
 							}
 						});
@@ -306,16 +345,16 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	}
 
 	//登录H5链接
-	if (location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0) {
+	if(location.href.indexOf('https://super.xiaoe-tech.com/new/ops_tool/app_create_token') >= 0){
 		let obj = readJSON();
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
-		if (obj.code === 3) {
+		if(obj.code === 3){
 			jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
 			createHtml('<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>');
 			location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 		}
-		if (obj.code === 0 && obj.data.howtodo) {
+		if(obj.code === 0 && obj.data.howtodo){
 			removeBackgroundLocalStorage(SUPER_JUMP_KEY);
 			let countdown_sec = 5000;
 			let timer = null;
@@ -329,47 +368,93 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			`;
 			document.body.appendChild(div);
 
-			let iframe = document.getElementById('auth_iframe');
 			let cdBtn = document.getElementById('xe-run-countdown');
 			cdBtn.addEventListener('click', e => {
-				if (timer) {
+				if(timer){
 					clearTimeout(timer);
 				}
 			});
 			const countDown = (tm) => {
-				if (tm > 0) {
+				if(tm > 0){
 					tm -= 100;
 					cdBtn.value = `停止(${(tm / 1000).toFixed(2)}s)`;
 					timer = setTimeout(() => {
 						countDown(tm)
 					}, 100);
-				} else {
-					let cosplayUrl = http2s(obj.data.howtodo.onekeycosplay);
-					if (jumpParam) {
-						let jumpData = JSON.parse(decodeBase64(jumpParam));
-						if(!jumpData){
-							console.info('jump param error');
-							document.location.href = cosplayUrl;
-							return;
-						}
-						//先登录管理台，再在当前tab打开指定连接
-						location.href = jumpData.url;
-					} else {
-						document.location.href = cosplayUrl;
-					}
+					return;
 				}
+				let cosplayUrl = http2s(obj.data.howtodo.onekeycosplay);
+				let jumpData = jumpParam ? JSON.parse(decodeBase64(jumpParam)) : {};
+				console.log('jumpData', jumpData);
+				if(jumpData && jumpData.url){
+					//附加上需要登录的token 参数，并打开需要跳转的窗口
+					console.log('open cosplay in iframe', cosplayUrl);
+					openInIframe(cosplayUrl, () => {
+						console.log('cosplayURL加载完成（未必触发）');
+					});
+					setTimeout(() => {
+						let jumpUrl = patchUrl(jumpData.url, {
+							ko_token: obj.data.token.value,
+							ko_user_id: obj.data.user.id,
+							ko_app_id: obj.data.user.app_id
+						});
+						console.log('jump to jumpUrl', jumpUrl);
+						document.location.href = jumpUrl;
+					}, 1000);
+					return;
+				}
+				document.location.href = cosplayUrl;
 			};
 			countDown(countdown_sec);
 		}
 	}
 
+	//圈子主页登录
+	if(location.href.indexOf('https://quanzi.xiaoe-tech.com') >= 0 &&
+		// location.href.indexOf('feed_list') >0 &&
+		location.href.indexOf('ko_token=') > 0){
+		const expireSecond = (parseInt(new Date().getTime() / 1000, 10) + 86400);
+		let urlParam = new URLSearchParams(location.search);
+		let app_id = urlParam.get('ko_app_id');
+		let user_id = urlParam.get('ko_user_id');
+		let token = urlParam.get('ko_token');
+		let url = location.href;
+		setChromeCookie({
+			url: url,
+			name: `pc_token_${app_id}`,
+			value: token,
+			path: '/',
+			expirationDate: expireSecond
+		}).then(msg => {
+			console.log(msg);
+		});
+		setChromeCookie({
+			url,
+			name: 'app_id',
+			value: app_id,
+			path: '/',
+			expirationDate: expireSecond
+		}).then(msg => {
+			console.log(msg);
+		});
+		setChromeCookie({
+			url,
+			name: `user_id_${app_id}`,
+			value: app_id,
+			path: '/',
+			expirationDate: expireSecond
+		}).then(msg => {
+			console.log(msg);
+		});
+	}
+
 	//登录B端管理台
-	if (location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0) {
+	if(location.href.indexOf('https://super.xiaoe-tech.com/new/saveLoginLog') >= 0){
 		let obj = readJSON();
 		let search = new URLSearchParams(location.search);
 		let jumpParam = search.get('jumpParam');
 		jumpParam && setBackgroundLocalStorage(SUPER_JUMP_KEY, jumpParam);
-		if (obj.code === 3) {
+		if(obj.code === 3){
 			createHtml(`
 				<div style="text-align:center; padding:1em; font-size:18px; color:red">请先登录O端客服工具</div>
 				<center><a href="https://o-oauth.xiaoe-tech.com/login_page">立即登录</a></center>
@@ -378,20 +463,20 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 				location.href = 'https://o-oauth.xiaoe-tech.com/login_page';
 			}, 500);
 		}
-		if (obj.code === 0) {
+		if(obj.code === 0){
 			location.href = unescapeHtml(obj.data.redirect_to); //成功，跳转到指定链接（携带鉴权信息）
 		}
 	}
 
 	//内部管理系统首页
-	if (location.href === 'https://super.xiaoe-tech.com/new' ||
-		location.href === 'https://super.xiaoe-tech.com/new#guider_page') {
+	if(location.href === 'https://super.xiaoe-tech.com/new' ||
+		location.href === 'https://super.xiaoe-tech.com/new#guider_page'){
 		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
-			if (jumpParam) {
+			if(jumpParam){
 				//后续补充patch
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
 				console.log(jumpData, jumpParam);
-				switch (jumpData.type) {
+				switch(jumpData.type){
 					case 'AppAdmin':
 						let appAdminForm = createHtml(buildAppAdminEntry(jumpData.appId, '跳转中', jumpData.url));
 						appAdminForm.removeAttribute('target');
@@ -411,12 +496,12 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	}
 
 	//B端管理台页面，需要处理跳转到指定页面逻辑
-	if (location.origin === 'https://admin.xiaoe-tech.com') {
+	if(location.origin === 'https://admin.xiaoe-tech.com'){
 		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
-			if (jumpParam) {
+			if(jumpParam){
 				removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
-				if (jumpData.url) {
+				if(jumpData.url){
 					jumpTo(jumpData.url);
 				}
 			}
@@ -426,42 +511,23 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 	//new window option
 	let MID_BTN_NEW_WIN_ENABLED = false;
 	let LINK_CLICK_NEW_WIN_ENABLED = false;
-	getCommonOptionSetting('common.MidBtnNewWin').then(ok=>{MID_BTN_NEW_WIN_ENABLED = ok;});
-	getCommonOptionSetting('common.LinkClickNewWin').then(ok=>{LINK_CLICK_NEW_WIN_ENABLED = ok;});
+	getCommonOptionSetting('common.MidBtnNewWin').then(ok => {
+		MID_BTN_NEW_WIN_ENABLED = ok;
+	});
+	getCommonOptionSetting('common.LinkClickNewWin').then(ok => {
+		LINK_CLICK_NEW_WIN_ENABLED = ok;
+	});
 	chrome.storage.onChanged.addListener((allChanges, namespace) => {
-		for (let key in allChanges) {
-			if (key === 'common.MidBtnNewWin') {
+		for(let key in allChanges){
+			if(key === 'common.MidBtnNewWin'){
 				MID_BTN_NEW_WIN_ENABLED = allChanges[key].newValue;
 			}
-			if (key === 'common.LinkClickNewWin') {
+			if(key === 'common.LinkClickNewWin'){
 				LINK_CLICK_NEW_WIN_ENABLED = allChanges[key].newValue;
 			}
 			inCommonOption(key) && toggleCss(key, allChanges[key].newValue);
 		}
 	});
-
-	let TARGET_WINDOW_ID_SESS_KEY = 'TARGET_WINDOW_ID_SESS_KEY';
-	const getTargetWindowId = ()=>{
-		let winId = sessionStorage.getItem(TARGET_WINDOW_ID_SESS_KEY);
-		winId = parseInt(winId);
-		return winId || null;
-	};
-
-	const setTargetWindowId = (winId)=>{
-		sessionStorage.setItem(TARGET_WINDOW_ID_SESS_KEY, winId);
-	}
-
-	const openNewWindowBackground = (targetWinId = null, href)=>{
-		return new Promise(resolve => {
-			chrome.runtime.sendMessage({
-				action: 'openNewWindowBackground',
-				url: href,
-				windowId:targetWinId
-			}, function (tagWinId) {
-				resolve(tagWinId);
-			});
-		});
-	}
 
 	document.body.addEventListener('click', e => {
 		try{
@@ -489,18 +555,18 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		}
 	});
 
-	document.body.addEventListener('auxclick', e=>{
+	document.body.addEventListener('auxclick', e => {
 		if(!MID_BTN_NEW_WIN_ENABLED || e.target.nodeName !== 'A' || !e.target.href || !e.target.href.length || e.target.href.indexOf('blob:') === 0){
 			return;
 		}
 		if(e.button !== 1){
-			console.log('不是鼠标中键',e);
+			console.log('不是鼠标中键', e);
 			return;
 		}
 		let href = e.target.href;
 		let targetWinId = getTargetWindowId();
 		console.log('start do open win', href, targetWinId);
-		openNewWindowBackground(targetWinId, href).then(tId=>{
+		openNewWindowBackground(targetWinId, href).then(tId => {
 			console.log('open win succ', tId);
 			setTargetWindowId(tId);
 		});

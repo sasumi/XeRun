@@ -238,7 +238,7 @@ export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
 		appId: appId,
 		userId: userId
 	}));
-	let ti = title || "H5登录："+jump.substring(0, 10);
+	let ti = title || "H5登录：" + jump.substring(0, 10);
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
@@ -246,23 +246,54 @@ export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
             </form>`;
 };
 
+/**
+ * 圈子PC登录
+ * @param {String} appId
+ * @param {String} userId
+ * @param {String} communityId
+ * @return {`<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${string}" style="display:inline-block" method="post" target="_blank">
+                <input type="hidden" name="app_id" value="${string}"/>
+                <input type="hidden" name="user_id" value="${string}"/>
+                <input type="submit" title="${string}" value="${string}" title="${string}" class="btn btn-danger btn-h5-system"/>
+            </form>`}
+ */
+export const buildUserPCCommunityEntry = (appId, userId, communityId = '') => {
+	let jump_url = buildCommunityPCUrl(appId, communityId);
+	let jumpParam = encodeBase64(JSON.stringify({
+		type: 'PCComm',
+		url: jump_url,
+		appId: appId,
+		userId: userId
+	}));
+	let title = "PC圈子登录";
+	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
+                <input type="hidden" name="app_id" value="${appId}"/>
+                <input type="hidden" name="user_id" value="${userId}"/>
+                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump_url)}" value="${escapeAttr(title)}" title="${escapeHtml(title)}" class="btn btn-danger btn-h5-system"/>
+            </form>`;
+}
+
 export const buildLink = (link, title = '', count = DEFAULT_LINK_WORD_COUNT) => {
 	return `<a href="${link}" title="${link}" data-allow-copy target="_blank">${cutTxt(title || link, count)}</a>`;
 };
 
-export const buildAppH5Url = appId => {
+export const buildAppH5Link = appId => {
 	return buildLink(`https://${appId}.h5.xiaoeknow.com/`);
 };
 
-export const buildAppPCUrl = appId => {
+export const buildAppPCLink = appId => {
 	return buildLink(`https://${appId}.pc.xiaoe-tech.com/`);
 };
 
-export const buildCommunityPCUrl = (appId, commId) => {
-	return buildLink(`https://quanzi.xiaoe-tech.com/${commId}/feed_list?app_id=${appId}`, '',);
+export const buildCommunityPCLink = (appId, commId = '') => {
+	return buildLink(buildCommunityPCUrl(appId, commId), '');
 };
 
-export const buildCommunityH5Url = (appId, commId) => {
+export const buildCommunityPCUrl = (appId, commId = '') => {
+	return commId ? `https://quanzi.xiaoe-tech.com/${commId}/feed_list?app_id=${appId}` : `https://quanzi.xiaoe-tech.com/`;
+};
+
+export const buildCommunityH5Link = (appId, commId) => {
 	return buildLink(`https://${appId}.h5.xiaoeknow.com/xe.community.community_service/v2/feedList?app_id=${appId}&community_id=${commId}&product_id=&share_user_id=`);
 };
 
@@ -290,12 +321,12 @@ export const renderTextResult = (txt, hieNoResult = false) => {
 
 	//C端链接
 	appId && (infoHtml += `<li><label>店铺ID：</label><span>${appId}</span></li>`);
-	appId && (infoHtml += `<li><label>店铺PC链接：</label><span>${buildAppPCUrl(appId)}</span></li>`);
-	appId && (infoHtml += `<li><label>店铺H5链接：</label><span>${buildAppH5Url(appId)}</span></li>`);
+	appId && (infoHtml += `<li><label>店铺PC链接：</label><span>${buildAppPCLink(appId)}</span></li>`);
+	appId && (infoHtml += `<li><label>店铺H5链接：</label><span>${buildAppH5Link(appId)}</span></li>`);
 	userId && (infoHtml += `<li><label>用户ID：</label><span>${userId}</span></li>`);
 	communityId && (infoHtml += `<li><label>圈子ID：</label><span>${communityId}</span></li>`);
-	appId && (infoHtml += `<li><label>圈子H5链接：</label><span>${buildCommunityH5Url(appId, communityId)}</span></li>`);
-	appId && (infoHtml += `<li><label>圈子PC链接：</label><span>${buildCommunityPCUrl(appId, communityId)}</span></li>`);
+	appId && (infoHtml += `<li><label>圈子H5链接：</label><span>${buildCommunityH5Link(appId, communityId)}</span></li>`);
+	appId && (infoHtml += `<li><label>圈子PC链接：</label><span>${buildCommunityPCLink(appId, communityId)}</span></li>`);
 
 	//c端替身登录
 	appId && userId && (links.length ? links : []).forEach(link => {
@@ -305,8 +336,11 @@ export const renderTextResult = (txt, hieNoResult = false) => {
 		opHtml += buildUserH5Entry(appId, userId, '', 'H5登录')
 	);
 	appId && userId && communityId && (
-		opHtml += buildUserH5Entry(appId, userId, buildCommunityH5Url(appId, communityId), 'H5圈子登录')
+		opHtml += buildUserH5Entry(appId, userId, buildCommunityH5Link(appId, communityId), 'H5圈子登录')
 	);
+	appId && userId && (
+		opHtml += buildUserPCCommunityEntry(appId, userId, communityId)
+	)
 
 	//其他
 	fromBase64 && (infoHtml += `<li><label>Base64解码：</label><span>${fromBase64}</span></li>`);
