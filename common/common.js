@@ -5,6 +5,7 @@ import {
 } from "./function.js";
 
 const DEFAULT_LINK_WORD_COUNT = 40;
+const SUPER_JUMP_KEY = 'SUPER_JUMP_URL';
 
 export const COMMON_OPTIONS = {
 	'通用': [
@@ -286,6 +287,19 @@ export const buildUserPCCommunityEntry = (appId, userId, communityId = '') => {
                 <input type="hidden" name="user_id" value="${userId}"/>
                 <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump_url)}" value="${escapeAttr(title)}" title="${escapeHtml(title)}" class="btn btn-pc-system"/>
             </form>`;
+}
+
+/**
+ * 打开需要O端登录态的连接
+ * @param {String} link
+ */
+export const openSupperAdminLink = (link)=>{
+	setBackgroundLocalStorage(SUPER_JUMP_KEY, encodeBase64(JSON.stringify({
+		type: 'url',
+		url: link
+	}))).then(()=>{
+		window.open('https://super.xiaoe-tech.com', '_blank');
+	});
 }
 
 export const buildLink = (link, title = '', count = DEFAULT_LINK_WORD_COUNT) => {

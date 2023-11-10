@@ -474,14 +474,18 @@ sc('app_id', '${ko_app_id}');
 			}, 500);
 		}
 		if(obj.code === 0){
+			removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 			location.href = unescapeHtml(obj.data.redirect_to); //成功，跳转到指定链接（携带鉴权信息）
 		}
 	}
 
 	//内部管理系统首页
 	if(location.href === 'https://super.xiaoe-tech.com/new' ||
-		location.href === 'https://super.xiaoe-tech.com/new#guider_page'){
+		location.href === 'https://super.xiaoe-tech.com/new#guider_page' ||
+		location.href === 'https://super.xiaoe-tech.com/new#/guider_page'){
 		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
+			console.log(jumpParam);
+			removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 			if(jumpParam){
 				//后续补充patch
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
@@ -498,6 +502,11 @@ sc('app_id', '${ko_app_id}');
 						H5Form.removeAttribute('target');
 						H5Form.submit();
 						return;
+
+					case 'url':
+						location.href = jumpData.url;
+						return;
+
 					default:
 						throw "Type Error";
 				}

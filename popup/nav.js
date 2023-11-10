@@ -5,9 +5,7 @@ document.write(`
 	<a href="option.html" class="option-link">选项</a>
 	<ul class="nav">
 	    <li><a href="string.html">内容识别</a></li>
-	    <li><a href="har.html">HAR Replaying</a></li>
-	    <li><a href="robot_preview.html" target="_blank">Robot Testing</a></li>
-	    <li><a href="code_vs.html" target="_blank">Code Visualization</a></li>
+	    <li><a href="tools.html">常用工具</a></li>
 	</ul>
 	<script src="popup.common.js"></script>
 `);
