@@ -34,4 +34,5 @@ chrome://extensions/shortcuts。
 最新插件版本请访问：https://github.com/sasumi/xerun 获取。
 
 如有需要，请支持开发者工作。
+
 ![微信支付](assert/doc/wechat.png)
