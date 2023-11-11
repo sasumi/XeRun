@@ -24,6 +24,11 @@ Microsoft Edge 浏览器核心使用 Chromium，因此在操作上与Chrome浏�
 
 ## 二、进阶使用
 为更方便使用应用弹窗，建议设置快捷键打开该扩展应用。
+chrome://extensions/shortcuts。
 
-1、该软件为免费使用软件，不对使用软件过程中出现任何问题负责，请自重。
-2、若使用过程有任何建议或意见，请联系作者<a href="mailto:cnsasumi@outlook.com">cnsasumi@outlook.com</a>。
+![为扩展设置快捷键](assert/doc/image-20231111.png)
+
+## 三、保持定期更新
+当前扩展为公司内部使用，尚未上架chrome和edge商店。使用时间超过一定时间浏览器可能会提示开发插件过期。
+点击【2周后提示】，或重新移除和安装插件即可。
+最新插件版本请访问：https://github.com/sasumi/xerun 获取
