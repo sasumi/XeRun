@@ -17,7 +17,7 @@ let options = {
 		{name:'数据门户', type:'super', link:'https://bi.xiaoeknow.com/easy/market/quick/redirect_page', icon:'http://wechatapppro-1252524126.file.myqcloud.com/1252524126/images/39db4621c9a482dfb4a9e7e869fa1142.%E7%BB%8F%E8%90%A5%E5%88%86%E6%9E%90.png'}
 	],
 	'技术工具':[
-		{name:'日志查询', link:'https://super.xiaoe-tech.com/new#/tools/get_login_status-copy', icon:'http://wechatapppro-1252524126.file.myqcloud.com/1252524126/images/cf7e70b0520ab31a60e464c79b572971.1.png'},
+		{name:'日志查询', link:'https://log.xiaoe-tools.com/', icon:'http://wechatapppro-1252524126.file.myqcloud.com/1252524126/images/cf7e70b0520ab31a60e464c79b572971.1.png'},
 	]
 }
 
