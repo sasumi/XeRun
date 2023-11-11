@@ -31,4 +31,7 @@ chrome://extensions/shortcuts。
 ## 三、保持定期更新
 当前扩展为公司内部使用，尚未上架chrome和edge商店。使用时间超过一定时间浏览器可能会提示开发插件过期。
 点击【2周后提示】，或重新移除和安装插件即可。
-最新插件版本请访问：https://github.com/sasumi/xerun 获取
+最新插件版本请访问：https://github.com/sasumi/xerun 获取。
+
+如有需要，请支持开发者工作。
+![微信支付](assert/doc/wechat.png)
