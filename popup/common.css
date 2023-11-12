@@ -1,5 +1,5 @@
 @charset "UTF-8";
-
+@import "./../assert/iconfont/iconfont.css";
 :root {
     --color: #333;
     --back-color: #fff;

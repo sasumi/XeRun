@@ -1,0 +1,83 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 4326836 */
+  src: url('iconfont.woff2?t=1699782143764') format('woff2'),
+       url('iconfont.woff?t=1699782143764') format('woff'),
+       url('iconfont.ttf?t=1699782143764') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-fun:before {
+  content: "\e606";
+}
+
+.icon-protect:before {
+  content: "\e60d";
+}
+
+.icon-setting:before {
+  content: "\e61c";
+}
+
+.icon-image:before {
+  content: "\e678";
+}
+
+.icon-account:before {
+  content: "\e61d";
+}
+
+.icon-command:before {
+  content: "\e749";
+}
+
+.icon-develop:before {
+  content: "\e621";
+}
+
+.icon-log:before {
+  content: "\e60c";
+}
+
+.icon-customer-service:before {
+  content: "\ec2e";
+}
+
+.icon-knowledge:before {
+  content: "\e618";
+}
+
+.icon-interests:before {
+  content: "\e604";
+}
+
+.icon-chart:before {
+  content: "\e600";
+}
+
+.icon-anonymous:before {
+  content: "\e64a";
+}
+
+.icon-xet:before {
+  content: "\e941";
+}
+
+.icon-avatar:before {
+  content: "\e605";
+}
+
+.icon-browser:before {
+  content: "\e612";
+}
+
+.icon-manager-system:before {
+  content: "\e636";
+}
+

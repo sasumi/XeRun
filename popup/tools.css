@@ -1,7 +1,7 @@
 @charset "UTF-8";
 .content {padding:0.25em;}
-.tools{font-size:13px;user-select:none;padding: 0.25em;overflow: hidden;}
+.tools{font-size:12px;user-select:none;padding: 0.25em;overflow: hidden;  color:#134483;}
 .tool-cap {display:block;clear:both;color: gray;margin: 0 0 0.5em 0;background: #eeeeeeb5;padding: 0.25em 0.5em;text-shadow: 1px 1px 1px white;border-radius: 3px;}
 .tool{float:left;cursor:pointer;text-align:center;width: 80px;word-break:break-all;margin: 0 0.5em 1em 0;opacity:0.8;color:var(--color)}
-.tool:hover {opacity:1;box-shadow: 1px 1px 1px #ccc;}
-.tool img{ width:40px; display:block; margin:0 auto;}
+.tool .iconfont {font-size:2.25em; display:block; text-align:center; margin-bottom:0.25em;}
+.tool:hover {color:#267ef0}
