@@ -171,5 +171,5 @@ html {
 }
 
 .preview-content a {
-    color: #267ef0
+    color: var(--link-color)
 }

@@ -17,8 +17,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		getCommonOptionSetting,
 		getChromeStorageSync,
 		setBackgroundLocalStorage,
-		getBackgroundLocalStorage,
-		removeBackgroundLocalStorage,
+		getAndRemoveBackgroundLocalStorage,
 		buildUserH5Entry,
 		buildCommunityPCLink,
 		buildAppAdminEntry
@@ -131,11 +130,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 
 	//init read config in storage
 	for(let groupTitle in COMMON_OPTIONS){
-		COMMON_OPTIONS[groupTitle].forEach(({
-			                                    title,
-			                                    key,
-			                                    defaultValue
-		                                    }) => {
+		COMMON_OPTIONS[groupTitle].forEach(({title, key, defaultValue}) => {
 			getChromeStorageSync(key, defaultValue).then(value => {
 				inCommonOption(key) && toggleCss(key, value);
 			});
@@ -157,18 +152,21 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		}
 	});
 
-	document.body.addEventListener('DOMSubtreeModified', e => {
-		setTimeout(() => {
-			if(!checkNavFit()){
-				hideQuickNavEntry();
-			}else{
-				getCommonOptionSetting('coding.quickNav').then(ok => {
-					quickNavStateOn = ok;
-					toggleQuickNavEntry(quickNavStateOn)
-				});
-			}
-		}, 100);
+	let mutationObserver = new MutationObserver(function(mutationRecords) {
+		mutationRecords.forEach(rec=>{
+			setTimeout(() => {
+				if(!checkNavFit()){
+					hideQuickNavEntry();
+				}else{
+					getCommonOptionSetting('coding.quickNav').then(ok => {
+						quickNavStateOn = ok;
+						toggleQuickNavEntry(quickNavStateOn)
+					});
+				}
+			}, 100);
+		});
 	});
+	mutationObserver.observe(document.body, {childList: true, attributes: false, subtree: true});
 
 	/**
 	 * 由于新版本的edge会把返回的json格式化，需要做额外检测。
@@ -262,7 +260,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			    --color: #333;
 			    --back-color: #fff;
 			    --font-size:14px;
-				font-family:微软雅黑, sans-serif; word-break:break-all; position:absolute; z-index:9999; padding:10px; background-color:white; box-shadow:1px 1px 40px #b3b3b3; width:350px; overflow-x:hidden; overflow-y:auto; font-size:13px;}
+				font-family:微软雅黑, sans-serif; word-break:break-all; position:absolute; z-index:9999; padding:10px; background-color:white; box-shadow:1px 1px 40px #b3b3b3; width:350px;  font-size:13px;}
 			.xe-run-panel:hover {}
 			.xe-run-panel .info-list {display:block; margin:0 0 0.5em 0; padding:0; max-height:240px; overflow-y:auto;}
 			.xe-run-panel .info-list li {list-style:none; margin:0; padding:0;}
@@ -276,7 +274,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			.xe-run-panel .btn-h5-system:hover {background-color:#4b8bff; border-color:#286be5; color:#fff;}
 			.xe-run-panel .btn-h5-system:hover {background-color: #fff; color:#286be5}
 
-			#xe-run-panel-close {position:absolute; color:gray; cursor:pointer; top:0; right:0; z-index:1; width:30px; height:30px; box-sizing:border-box; font-size:18px;  overflow:hidden; text-align:center; }
+			#xe-run-panel-close {position:absolute; border-radius:50%; box-shadow:1px 1px 10px #ccc; --size:30px; background-color:white; color:gray; cursor:pointer; top:calc(var(--size) / 2 * -1); right:calc(var(--size) / 2 * -1); z-index:1; width:var(--size); height:var(--size); box-sizing:border-box; font-size:18px;  overflow:hidden; text-align:center; }
 			#xe-run-panel-close:hover {color:black;}
 		`, 'xe-run-panel');
 
@@ -298,7 +296,6 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		});
 
 		document.addEventListener('mouseup', e => {
-			console.log('mouse up');
 			if(panel && domContained(panel, e.target)){
 				return;
 			}
@@ -368,7 +365,6 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 			let ko_user_id = obj.data.user.id;
 			let ko_app_id = obj.data.user.app_id;
 			let cosplay_url = http2s(obj.data.howtodo.onekeycosplay);
-			removeBackgroundLocalStorage(SUPER_JUMP_KEY);
 			let countdown_sec = 5000;
 			let timer = null;
 			let div = document.createElement('div');
@@ -474,7 +470,6 @@ sc('app_id', '${ko_app_id}');
 			}, 500);
 		}
 		if(obj.code === 0){
-			removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 			location.href = unescapeHtml(obj.data.redirect_to); //成功，跳转到指定链接（携带鉴权信息）
 		}
 	}
@@ -483,9 +478,8 @@ sc('app_id', '${ko_app_id}');
 	if(location.href === 'https://super.xiaoe-tech.com/new' ||
 		location.href === 'https://super.xiaoe-tech.com/new#guider_page' ||
 		location.href === 'https://super.xiaoe-tech.com/new#/guider_page'){
-		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
+		getAndRemoveBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
 			console.log(jumpParam);
-			removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 			if(jumpParam){
 				//后续补充patch
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
@@ -516,9 +510,8 @@ sc('app_id', '${ko_app_id}');
 
 	//B端管理台页面，需要处理跳转到指定页面逻辑
 	if(location.origin === 'https://admin.xiaoe-tech.com'){
-		getBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
+		getAndRemoveBackgroundLocalStorage(SUPER_JUMP_KEY).then(jumpParam => {
 			if(jumpParam){
-				removeBackgroundLocalStorage(SUPER_JUMP_KEY); //清理记忆跳转信息
 				let jumpData = JSON.parse(decodeBase64(jumpParam));
 				if(jumpData.url){
 					jumpTo(jumpData.url);

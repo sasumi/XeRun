@@ -66,7 +66,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if(!message || !message.action){
 		throw "no action found";
 	}
-
 	console.log('onMessage', message.action, message);
 	switch(message.action){
 		case 'openTabOnce':

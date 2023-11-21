@@ -42,6 +42,7 @@
 			"resources": [
 				"common/function.js",
 				"common/common.js",
+				"common/resource.js",
 				"content/right_arr.png"
 			],
 			"matches": [

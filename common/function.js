@@ -10,6 +10,15 @@ export const patchCss = (cssStr, id = null) => {
 };
 
 /**
+ * 正则表达式转义
+ * @param str
+ * @returns {string}
+ */
+export const regQuote = (str)=>{
+	return (str + '').replace(/([\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:])/g, "\\$1");
+};
+
+/**
  * 转义HTML到属性值
  * @param {String} s
  * @param preserveCR
@@ -198,6 +207,11 @@ export const batchAddListener = (dom, events, payload) => {
 	});
 }
 
+export const isBase64 = (txt) => {
+	let base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+	return base64regex.test(txt);
+}
+
 export const encodeBase64 = (txt) => {
 	try{
 		let d = btoa(txt);
@@ -210,6 +224,9 @@ export const encodeBase64 = (txt) => {
 };
 
 export const decodeBase64 = (txt) => {
+	if(!isBase64(txt)){
+		return null;
+	}
 	try{
 		let d = atob(txt);
 		let str = decodeURI(d);
@@ -272,4 +289,18 @@ export const jumpTo = (url) => {
 	}
 	//only set hash, reload required
 	location.reload();
+}
+
+export const resolveUrls = (txt) => {
+	let urls = [];
+	let tmp = {};
+	txt = ' ' + txt + ' ';
+	txt.replace(/(https|http)(:\/\/.*?)[\s\n]/ig, ms => {
+		ms = ms.trim();
+		if(!tmp[ms]){
+			urls.push(ms.trim());
+			tmp[ms] = true;
+		}
+	});
+	return urls;
 }
