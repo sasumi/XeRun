@@ -210,11 +210,12 @@ export const isH5Link = link => {
 /**
  * 构建后台管理台入口
  * @param {String} appId
- * @param {String} title
  * @param {String} jump
+ * @param {String} title
+ * @param fullTitle
  * @returns {String}
  */
-export const buildAppAdminEntry = (appId, title = "管理台", jump = '') => {
+export const buildAppAdminEntry = (appId, jump = '', title = "管理台", fullTitle = '') => {
 	console.log('jump', jump);
 	let jumpParam = encodeBase64(JSON.stringify({
 		type: 'AppAdmin',
@@ -226,7 +227,7 @@ export const buildAppAdminEntry = (appId, title = "管理台", jump = '') => {
                 <input type="hidden" name="context_reason" value="1"/>
                 <input type="hidden" name="context_resource_id" value=""/>
                 <input type="hidden" name="context_resource_type" value="4"/>
-                <input type="submit" value="${title}" class="btn btn-admin-system"/>
+                <input type="submit" value="${escapeAttr(title)}" title="${escapeAttr(fullTitle)}" class="btn btn-admin-system"/>
             </form>`;
 };
 
@@ -236,9 +237,10 @@ export const buildAppAdminEntry = (appId, title = "管理台", jump = '') => {
  * @param {String} userId
  * @param {String} jump
  * @param {String} title
+ * @param fullTitle
  * @returns {String}
  */
-export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
+export const buildUserH5Entry = (appId, userId, jump = '', title = '', fullTitle = '') => {
 	let jumpParam = encodeBase64(JSON.stringify({
 		type: 'UserH5',
 		url: jump,
@@ -249,7 +251,7 @@ export const buildUserH5Entry = (appId, userId, jump = '', title = '') => {
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump)}" value="${escapeAttr(ti)}" title="${escapeHtml(ti)}" class="btn btn-h5-system"/>
+                <input type="submit" title="${escapeAttr(fullTitle)}" value="${escapeAttr(ti)}" title="${escapeHtml(ti)}" class="btn btn-h5-system"/>
             </form>`;
 };
 
@@ -324,17 +326,19 @@ export const renderTextResult = (txt, hereNoResult = false) => {
 
 	//B端功能
 	appIds.forEach(appId=>{
-		opHtml += buildAppAdminEntry(appId, '登B端'+fetchTailStr(appId), ADMIN_HOST);
+		opHtml += buildAppAdminEntry(appId, ADMIN_HOST, '登B端'+fetchTailStr(appId), `登录B端管理台：${appId}`);
 	});
 	if(appIds.length && userIds.length){
 		userIds.forEach(userId=>{
-			opHtml += buildAppAdminEntry(appId, 'B端用户详情'+fetchTailStr(userId), `${ADMIN_HOST}/t/user_manage/index#/user_list/userDetails/openRecords?userId=${userId}`);
+			opHtml += buildAppAdminEntry(appId, `${ADMIN_HOST}/t/user_manage/index#/user_list/userDetails/openRecords?userId=${userId}`, 'B端用户详情'+fetchTailStr(userId), `登录查看B端用户详情：${userId}`);
 		});
 	}
 	if(appIds.length && resourceIds.length){
 		resourceIds.forEach(({type, id}) => {
-			opHtml += buildAppAdminEntry(appId, `B端${RESOURCE_TYPE_MAP[type]}详情` + fetchTailStr(id),
-				getResourceInfoUrl(appId, id, type, SYS_ADMIN));
+			opHtml += buildAppAdminEntry(appId,
+				getResourceInfoUrl(appId, id, type, SYS_ADMIN),
+				`B端${RESOURCE_TYPE_MAP[type]}详情` + fetchTailStr(id),
+				`登录查看B端${RESOURCE_TYPE_MAP[type]}详情：${id}`);
 		});
 	}
 
@@ -358,18 +362,24 @@ export const renderTextResult = (txt, hereNoResult = false) => {
 
 	//c端替身登录
 	appIds.length && userIds.length && (links.length ? links : []).forEach(link => {
+		if(!isH5Link(link)){
+			return;
+		}
 		userIds.forEach(userId=>{
-			opHtml += buildUserH5Entry(appIds[0], userId, isH5Link(link) ? link : '');
+			opHtml += buildUserH5Entry(appIds[0], userId, link, `登C端看链接`+fetchTailStr(link), `登C端并看链接：${link}\nAppID: ${appIds[0]}\nUserId: ${userId}`);
 		});
 	});
 	appIds.length && userIds.length && !links.length && (
 		userIds.forEach(userId=>{
-			opHtml += buildUserH5Entry(appIds[0], userId, '', 'H5');
+			opHtml += buildUserH5Entry(appIds[0], userId, '', 'H5', `登录C端H5：${userId}`);
 		})
 	);
 	appIds.length && userIds.length && resourceIds.length && (
 		userIds.forEach(userId=>{
-			opHtml += buildUserH5Entry(appId, userId, getResourceInfoUrl(appIds[0], resourceIds[0].id, resourceIds[0].type, SYS_H5), 'H5' + RESOURCE_TYPE_MAP[resourceIds[0].type]);
+			opHtml += buildUserH5Entry(appId, userId,
+				getResourceInfoUrl(appIds[0], resourceIds[0].id, resourceIds[0].type, SYS_H5),
+				'H5' + RESOURCE_TYPE_MAP[resourceIds[0].type],
+				`登录C端查看资源：${RESOURCE_TYPE_MAP[resourceIds[0].type]}\nAppID: ${appId}\nUserId: ${userId}\n资源ID: ${resourceIds[0]}`);
 		})
 	);
 
