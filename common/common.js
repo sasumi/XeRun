@@ -17,7 +17,7 @@ import {
 } from "./resource.js";
 
 const DEFAULT_LINK_WORD_COUNT = 40;
-const SUPER_JUMP_KEY = 'SUPER_JUMP_URL';
+export const SUPER_JUMP_KEY = 'SUPER_JUMP_URL';
 
 export const COMMON_OPTIONS = {
 	'通用': [
@@ -251,9 +251,50 @@ export const buildUserH5Entry = (appId, userId, jump = '', title = '', fullTitle
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" title="${escapeAttr(fullTitle)}" value="${escapeAttr(ti)}" title="${escapeHtml(ti)}" class="btn btn-h5-system"/>
+                <input type="submit" title="${escapeAttr(fullTitle)}" value="${escapeAttr(ti)}" class="btn btn-h5-system"/>
             </form>`;
 };
+
+/**
+ * 打开兵器库，查询用户是否拥有指定资源权益
+ * @param appId
+ * @param userId
+ * @param resourceId
+ * @param resourceType
+ * @param title
+ * @param fullTitle
+ * @returns string
+ */
+export const buildSuperRightsQuery = (appId, userId, resourceId, resourceType, title = '', fullTitle = '') => {
+	let jumpParam = encodeBase64(JSON.stringify({
+		type: 'SuperRights',
+		appId: appId,
+		userId: userId,
+		resourceId,
+		resourceType
+	}));
+	let jumpUrl = `https://super.xiaoe-tech.com/new?jumpParam=${jumpParam}#/tools/source_right_manage-copy`
+	return `<form action="./../popup/super_admin_jumper.html" style="display:inline-block" method="get" target="_blank">
+                <input type="hidden" name="jumpUrl" value="${escapeAttr(jumpUrl)}"/>
+                <input type="submit" title="${escapeAttr(fullTitle)}" value="${escapeAttr(title || "查看用户权益")}" class="btn btn-h5-system"/>
+            </form>`;
+}
+
+export const watchPageUntil = (selector, callback, timeoutMs)=>{
+	let st = (new Date()).getTime();
+	let checkInterval = 100;
+	let loop = ()=>{
+		if(document.querySelector(selector)){
+			callback();
+			return;
+		}
+		if((new Date()).getTime() - st > timeoutMs){
+			return;
+		}
+		setTimeout(loop, checkInterval);
+	}
+	loop();
+}
 
 /**
  * 圈子PC登录
@@ -274,7 +315,7 @@ export const buildUserPCCommunityEntry = (appId, userId, communityId = '') => {
 	return `<form action="https://super.xiaoe-tech.com/new/ops_tool/app_create_token?jumpParam=${jumpParam}" style="display:inline-block" method="post" target="_blank">
                 <input type="hidden" name="app_id" value="${appId}"/>
                 <input type="hidden" name="user_id" value="${userId}"/>
-                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump_url)}" value="${escapeAttr(title)}" title="${escapeHtml(title)}" class="btn btn-pc-system"/>
+                <input type="submit" title="${title ? escapeAttr(title) : escapeAttr(jump_url)}" value="${escapeAttr(title)}" class="btn btn-pc-system"/>
             </form>`;
 }
 
@@ -388,8 +429,13 @@ export const renderTextResult = (txt, hereNoResult = false) => {
 		opHtml += buildUserPCCommunityEntry(appIds[0], userIds[0], communityId)
 	)
 
+	//权益查看
+	appIds.length && userIds.length && resourceIds.forEach(resourceInfo=>{
+		opHtml += buildSuperRightsQuery(appIds[0], userIds[0], resourceInfo.id, resourceInfo.type);
+	});
+
 	//其他
-	fromBase64 && (infoHtml += `<li><label>Base64解码：</label><strong>${fromBase64}</strong></li>`);
+	fromBase64 && (infoHtml += `<li><label>Base64解码：</label><strong style="word-break:break-all;">${fromBase64}</strong></li>`);
 
 	if(!txt){
 		return '';

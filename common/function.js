@@ -248,6 +248,21 @@ export const cutTxt = (str, count) => {
 };
 
 
+/**
+ * 触发HTML节点事件
+ * @param {HTMLElement} node
+ * @param {String} event
+ */
+export const triggerDomEvent = (node, event) => {
+	if("createEvent" in document){
+		let evt = document.createEvent("HTMLEvents");
+		evt.initEvent(event.toLowerCase(), false, true);
+		node.dispatchEvent(evt);
+	}else{
+		node.fireEvent("on"+event.toLowerCase());
+	}
+};
+
 //将unicode编码转字符串
 export const unicode2str = (unicode) => {
 	let result = [];

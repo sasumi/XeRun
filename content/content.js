@@ -20,6 +20,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		getAndRemoveBackgroundLocalStorage,
 		buildUserH5Entry,
 		buildCommunityPCLink,
+		watchPageUntil,
 		buildAppAdminEntry
 	} = await import(chrome.runtime.getURL('common/common.js'));
 
@@ -34,6 +35,7 @@ document.body.parentNode.setAttribute(HOST_ATTR_KEY, location.host);
 		layDomInView,
 		unescapeHtml,
 		http2s,
+		triggerDomEvent,
 		openInIframe,
 		patchUrl
 	} = await import(chrome.runtime.getURL('common/function.js'));
@@ -471,6 +473,23 @@ sc('app_id', '${ko_app_id}');
 		}
 		if(obj.code === 0){
 			location.href = unescapeHtml(obj.data.redirect_to); //成功，跳转到指定链接（携带鉴权信息）
+		}
+	}
+
+	if(location.href.includes('/tools/source_right_manage-copy')){
+		let search = new URLSearchParams(location.search);
+		let jumpParam = search.get('jumpParam');
+		let jumpData = jumpParam ? JSON.parse(decodeBase64(jumpParam)) : null;
+		console.log(jumpData);
+		if(jumpData){
+			watchPageUntil('.rights', ()=>{
+				let {type, appId, userId, resourceId, resourceType} = jumpData;
+				let inputs = document.querySelectorAll('.rights input[type=text]');
+				inputs[0] && (inputs[0].value = appId);
+				inputs[1] && (inputs[1].value = userId);
+				inputs[2] && (inputs[2].value = resourceId);
+				triggerDomEvent(document.querySelector('.rights button[type=button]'), 'click');
+			}, 5000);
 		}
 	}
 
