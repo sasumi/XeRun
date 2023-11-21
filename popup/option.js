@@ -5,7 +5,7 @@ import {
 } from "./../common/common.js";
 import {batchAddListener} from "../common/function.js";
 
-let ctnDom = document.querySelector('.content');
+let ctnDom = document.querySelector('.option-list');
 
 for(let groupTitle in COMMON_OPTIONS){
 	let optGrpDom = document.createElement('div');
